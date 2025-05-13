@@ -1,0 +1,40 @@
+{
+  "name": "leaflet-search",
+  "version": "4.0.0",
+  "description": "Leaflet Control for searching markers/features by attribute on map or remote searching in jsonp/ajax",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:stefanocudini/leaflet-search.git"
+  },
+  "homepage": "https://opengeo.tech/maps/leaflet-search/",
+  "author": {
+    "name": "Stefano Cudini",
+    "email": "stefano.cudini@gmail.com",
+    "url": "https://opengeo.tech/"
+  },
+  "main": "dist/leaflet-search.src.js",
+  "style": "dist/leaflet-search.src.css",
+  "license": "MIT",
+  "keywords": [
+    "gis",
+    "map",
+    "leaflet"
+  ],
+  "scripts": {},
+  "dependencies": {
+    "leaflet": "*"
+  },
+  "devDependencies": {
+    "grunt": "^1.4.1",
+    "grunt-banner": "^0.6.0",
+    "grunt-cli": "^1.4.3",
+    "grunt-contrib-clean": "^2.0.0",
+    "grunt-contrib-concat": "^2.0.0",
+    "grunt-contrib-cssmin": "^4.0.0",
+    "grunt-contrib-jshint": "^3.2.0",
+    "grunt-contrib-uglify": "^5.0.1",
+    "grunt-contrib-watch": "^1.1.0",
+    "grunt-remove-logging": "^0.2.0",
+    "standard": "^17.0.0"
+  }
+}

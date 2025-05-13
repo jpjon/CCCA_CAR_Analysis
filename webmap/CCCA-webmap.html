@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analysis of CAR Modifications</title>
+  <!-- Leaflet Library -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="leaflet-search-master/src/leaflet-search.css" />
+  <link rel="stylesheet" href="leaflet-search-master/src/styles.css" />
+  
+  <!-- Plugins -->
+  <script src="leaflet-ajax/dist/leaflet.ajax.min.js"></script>
+  <script src="leaflet-search-master/src/leaflet-search.js"></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+  <header id="map-header">
+    <img src="leaflet-search-master/images/logo.png" alt="Logo" class="header-logo">
+    <h1 class="header-title">Analysis of CAR Modifications to Exclude Deforestation</h1>
+  </header>
+
+  <div id="controls">
+    <!-- CAR Layer Toggles -->
+    <div id="layer-toggles">
+      <label class="switch-label">
+        2023
+        <label class="switch">
+          <input type="checkbox" id="toggle2023" checked>
+          <span class="slider"></span>
+        </label>
+      </label>
+      <label class="switch-label">
+        2024
+        <label class="switch">
+          <input type="checkbox" id="toggle2024" checked>
+          <span class="slider"></span>
+        </label>
+      </label>
+    </div>
+  </div>
+
+  <div id="map"></div>
+
+  <script>
+    var map = L.map('map', {zoomControl: false}).setView([-6.9, -57.126648], 5);
+    L.tileLayer('https://api.maptiler.com/maps/basic-v2/{z}/{x}/{y}.png?key=uLj1tcTeRnTuMXmIJzxd', {
+      attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
+    }).addTo(map);
+
+    var prodes = new L.GeoJSON.AJAX("data/PRODES_deforestation.geojson", {style: {color: 'orange'}});             
+    prodes.addTo(map);
+
+    var car2023 = new L.GeoJSON.AJAX("data/CAR_2023.geojson", {
+      onEachFeature: function(feature, layer){
+        var popupContent = "<b>Submitted:</b> 2023 <br> <b>Property Code:</b> "+feature.properties.COD_IMOVEL;
+        layer.on('mouseover', function (e) {
+          layer.bindPopup(popupContent).openPopup();
+        });
+        layer.on('mouseout', function (e) {
+          layer.closePopup();
+        });
+      },
+      style: {color: 'grey', weight: 1, dashArray: '1, 4'},
+    }).addTo(map);
+
+    var car2024 = new L.GeoJSON.AJAX("data/CAR_2024.geojson", {
+      onEachFeature: function(feature, layer){
+        var popupContent = "<b>Submitted:</b> 2024 <br> <b>Property Code:</b> "+feature.properties.cod_imovel;
+        layer.on('mouseover', function (e) {
+          layer.bindPopup(popupContent).openPopup();
+        });
+        layer.on('mouseout', function (e) {
+          layer.closePopup();
+        });
+      },
+      style: {color: 'blue'}, 
+    }).addTo(map);
+
+    car2023.on('data:loaded', function () {
+      var searchControl = new L.Control.Search({
+        layer: car2023,
+        zoom: 13,
+        propertyName: 'COD_IMOVEL',
+        marker: false
+      });
+      map.addControl(searchControl);
+
+      var connectionLine;
+      searchControl.on('search:locationfound', function(e) {
+        if (connectionLine) {
+          map.removeLayer(connectionLine);
+        }
+        var searchedFeature = e.layer.feature;
+        var searchedCode = searchedFeature.properties.COD_IMOVEL;
+        var centroid2023 = e.layer.getBounds().getCenter();
+        var matchFound = false;
+        car2024.eachLayer(function(layer) {
+          if (layer.feature && layer.feature.properties.cod_imovel === searchedCode) {
+            matchFound = true;
+            var centroid2024 = layer.getBounds().getCenter();
+            connectionLine = L.polyline([centroid2023, centroid2024], {
+              color: 'red',
+              weight: 2,
+              dashArray: '4, 4'
+            }).addTo(map);
+          }
+        });
+      });
+
+      document.getElementById('toggle2023').addEventListener('change', function (e) {
+        if (e.target.checked) {
+          map.addLayer(car2023);
+        } else {
+          map.removeLayer(car2023);
+        }
+      });
+
+      document.getElementById('toggle2024').addEventListener('change', function (e) {
+        if (e.target.checked) {
+          map.addLayer(car2024);
+        } else {
+          map.removeLayer(car2024);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
