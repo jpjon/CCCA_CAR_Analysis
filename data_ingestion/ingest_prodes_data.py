@@ -6,11 +6,14 @@ from clint.textui import progress
 # === Configuration ===
 
 # Path where all data will be saved
-DATA_DIR = "../data"
+DATA_DIR = "./data"
+
+# PRODES directory root
+PRODES_DIR = os.path.join(DATA_DIR, "PRODES")
 
 # PRODES dataset filenames
-PRODES_ZIP = os.path.join(DATA_DIR, "prodes_amazonia_nb.gpkg.zip")
-PRODES_EXTRACTED = os.path.join(DATA_DIR, "PRODES", "prodes_amazonia_nb.gpkg")
+PRODES_ZIP = os.path.join(PRODES_DIR, "prodes_amazonia_nb.gpkg.zip")
+PRODES_EXTRACTED = os.path.join(PRODES_DIR, "PRODES", "prodes_amazonia_nb.gpkg")
 
 # === Utility Functions ===
 
@@ -59,13 +62,14 @@ def download_prodes_data() -> None:
             PRODES_ZIP
         )
 
-    unzip_file(PRODES_ZIP, DATA_DIR)
+    unzip_file(PRODES_ZIP, PRODES_DIR)
 
 # === Main Execution ===
 
 if __name__ == "__main__":
     # Create data directories if they don't exist
     os.makedirs(DATA_DIR, exist_ok=True)
+    os.makedirs(PRODES_DIR, exist_ok=True)
 
     # Download PRODES dataset
     download_prodes_data()

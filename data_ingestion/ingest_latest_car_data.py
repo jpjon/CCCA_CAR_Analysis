@@ -11,7 +11,7 @@ import sys  # Added to accept arguments from the shell script
 # === Configuration ===
 
 # Path where all data will be saved
-DATA_DIR = "../data"
+DATA_DIR = "./data"
 
 # SICAR directory root
 SICAR_DIR = os.path.join(DATA_DIR, "SICAR")
