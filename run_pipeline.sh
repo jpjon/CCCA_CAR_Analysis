@@ -86,4 +86,19 @@ LATEST_OUTPUT_DIR=$(ls -dt ./outputs/*/ | head -n 1 | sed 's:/*$::')
 
 # Run visualization
 echo "📊 Visualizing using data from $LATEST_OUTPUT_DIR"
-python3 data_visualization/visualize_data.py "$LATEST_OUTPUT_DIR"
+
+# Copy latest output GeoJSONs to webmap/data/
+WEBMAP_DATA_DIR="./webmap/data"
+mkdir -p "$WEBMAP_DATA_DIR"
+cp "$LATEST_OUTPUT_DIR"/*.geojson "$WEBMAP_DATA_DIR/"
+
+# Write config.json with the selected years
+cat <<EOF > "$WEBMAP_DATA_DIR/config.json"
+{
+  "year1": "$YEAR1",
+  "year2": "$YEAR2"
+}
+EOF
+
+echo "🌐 Latest GeoJSON files and config.json copied to $WEBMAP_DATA_DIR for webmap use."
+

@@ -1,11 +1,22 @@
 from standardize_data import standardize_car_data
+import dask_geopandas as dgpd
 import geopandas as gpd
 import pandas as pd
 from geopy.distance import geodesic
 from shapely.geometry import LineString
 from datetime import datetime
 import sys
+from dask.diagnostics import ProgressBar
+from tqdm import tqdm
+import time
 import os
+
+import warnings
+
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", message="Geometry is in a geographic CRS. Results from 'centroid' are likely incorrect.*")
+
 
 ##############################################
 #              Load SICAR data               #
@@ -89,9 +100,19 @@ prodes_gdf = prodes_gdf.to_crs(car_gdf_later_year.crs)
 print("Performing spatial join to find intersections between earlier CAR year and PRODES data...")
 
 # Spatial join to identify earlier-year CAR parcels intersecting PRODES areas
-car_earlier_year_prodes_intersection_gdf = gpd.sjoin(
-    car_gdf_earlier_year, prodes_gdf, how="inner", predicate="intersects"
-).drop(columns=["index_right"])
+
+# Using Dask for parallel processing to reduce runtime
+car_ddf = dgpd.from_geopandas(car_gdf_earlier_year, npartitions=4)
+prodes_ddf = dgpd.from_geopandas(prodes_gdf, npartitions=4)
+
+sjoin_ddf = car_ddf.sjoin(prodes_ddf, how="inner", predicate="intersects")
+
+start_time = time.time()
+with ProgressBar():
+    car_earlier_year_prodes_intersection_gdf = sjoin_ddf.compute().drop(columns=["index_right"])
+end_time = time.time()
+
+print(f"Spatial join completed in {end_time - start_time:.2f} seconds.")
 
 # Drop duplicates where one geometry intersects multiple PRODES features
 car_earlier_year_prodes_intersection_gdf = car_earlier_year_prodes_intersection_gdf.drop_duplicates(
@@ -128,11 +149,23 @@ car_later_year_car_early_year_prodes_intersect_with_prodes = car_later_year_car_
     how='inner'
 ).rename(columns={'geometry': 'geometry_prodes'})
 
+print("Filtering to find cases where geometry changed and no longer intersects PRODES...")
+
 # Filter to find cases where geometry changed and no longer intersects PRODES
+
+start_time = time.time()
+
 filtered_indexes = [
-    row.Index for row in car_later_year_car_early_year_prodes_intersect_with_prodes.itertuples()
+    row.Index for row in tqdm(
+        car_later_year_car_early_year_prodes_intersect_with_prodes.itertuples(), 
+        desc="Filtering geometries"
+    )
     if row.geometry_changed and not row.__getattribute__(f'geometry_{later_year}').intersects(row.geometry_prodes)
 ]
+
+end_time = time.time()
+
+print(f"Filtering completed in {end_time - start_time:.2f} seconds.")
 
 car_later_year_car_early_year_prodes_intersect_with_prodes = \
     car_later_year_car_early_year_prodes_intersect_with_prodes.loc[filtered_indexes]
@@ -140,6 +173,8 @@ car_later_year_car_early_year_prodes_intersect_with_prodes = \
 ##############################################
 #     Data Processing -- Distance Analysis   #
 ##############################################
+
+print("Running distance analysis...")
 
 def calculate_geodesic_distance(row):
     coord_earlier_year = (row[f'centroid_{earlier_year}'].y, row[f'centroid_{earlier_year}'].x)
@@ -185,7 +220,19 @@ geometry_columns = {
     "distance_line": "distance_lines.geojson"
 }
 
+target_crs = "EPSG:4674"
+
 for geom_col, filename in geometry_columns.items():
     gdf_out = car_later_year_car_early_year_prodes_intersect_with_prodes[fields_to_keep + [geom_col]].copy()
     gdf_out = gdf_out.set_geometry(geom_col)
-    gdf_out.to_file(os.path.join(output_dir, filename), driver="GeoJSON")
+    
+    # Set CRS if not already set
+    if gdf_out.crs is None:
+        gdf_out = gdf_out.set_crs(target_crs)
+    else:
+        # Reproject to EPSG:4674 if needed
+        gdf_out = gdf_out.to_crs(target_crs)
+    
+    output_path = os.path.join(output_dir, filename)
+    gdf_out.to_file(output_path, driver="GeoJSON")
+    print(f"File saved: {output_path}")
