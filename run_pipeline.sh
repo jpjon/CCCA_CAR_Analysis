@@ -90,6 +90,7 @@ echo "📊 Visualizing using data from $LATEST_OUTPUT_DIR"
 # Copy latest output GeoJSONs to webmap/data/
 WEBMAP_DATA_DIR="./webmap/data"
 mkdir -p "$WEBMAP_DATA_DIR"
+rm -f "$WEBMAP_DATA_DIR"/*
 cp "$LATEST_OUTPUT_DIR"/*.geojson "$WEBMAP_DATA_DIR/"
 
 # Write config.json with the selected years
@@ -102,3 +103,7 @@ EOF
 
 echo "🌐 Latest GeoJSON files and config.json copied to $WEBMAP_DATA_DIR for webmap use."
 
+# Run webmap
+echo "🚀 Starting webmap server...
+Navigate to http://localhost:8000 to view the webmap."
+python3 -m http.server 8000 --directory webmap &
