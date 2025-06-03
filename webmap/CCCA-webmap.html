@@ -33,14 +33,14 @@
       <label class="switch-label">
         2023
         <label class="switch">
-          <input type="checkbox" id="toggle2023" checked>
+          <input type="checkbox" id="toggle_earlier_year" checked>
           <span class="slider"></span>
         </label>
       </label>
       <label class="switch-label">
         2024
         <label class="switch">
-          <input type="checkbox" id="toggle2024" checked>
+          <input type="checkbox" id="toggle_later_year" checked>
           <span class="slider"></span>
         </label>
       </label>
@@ -61,7 +61,7 @@
 
     // Load the PRODES deforestation GeoJSON layer using AJAX and style it orange
     var prodes = new L.GeoJSON.AJAX("data/geometry_prodes.geojson", {
-      style: {color: 'brown'}
+      style: {color: 'green'}
     });             
     prodes.addTo(map);
 
@@ -118,28 +118,28 @@
         var year2 = config.year2;
 
         // Now dynamically load the correct GeoJSONs
-        var car1 = new L.GeoJSON.AJAX(`data/geometry_${year1}.geojson`, {
+        var early_year_car_data = new L.GeoJSON.AJAX(`data/geometry_${year1}.geojson`, {
           onEachFeature: function(feature, layer){
-            var popupContent = `<b>Submitted:</b> ${year1} <br> <b>Property Code:</b> ` + (feature.properties.cod_imovel || feature.properties.COD_IMOVEL);
+            var popupContent = `<b>Submitted:</b> ${year1} <br> <b>Property Code:</b> ` + (feature.properties.cod_imovel || feature.properties.cod_imovel);
             bindStickyPopup(layer, popupContent);
           },
-          style: {color: 'blue', weight: 1, dashArray: '1, 4'},
+          style: {color: 'blue', weight: 1},
         }).addTo(map);
 
-        var car2 = new L.GeoJSON.AJAX(`data/geometry_${year2}.geojson`, {
+        var later_year_car_data = new L.GeoJSON.AJAX(`data/geometry_${year2}.geojson`, {
           onEachFeature: function(feature, layer){
-            var popupContent = `<b>Submitted:</b> ${year2} <br> <b>Property Code:</b> ` + (feature.properties.cod_imovel || feature.properties.COD_IMOVEL);
+            var popupContent = `<b>Submitted:</b> ${year2} <br> <b>Property Code:</b> ` + (feature.properties.cod_imovel || feature.properties.cod_imovel);
             bindStickyPopup(layer, popupContent);
           },
           style: {color: 'red'},
         }).addTo(map);
 
         // When the CAR 2023 layer has finished loading its data
-        car1.on('data:loaded', function () {
+        early_year_car_data.on('data:loaded', function () {
           var searchControl = new L.Control.Search({
-            layer: car1,
+            layer: early_year_car_data,
             zoom: 13,
-            propertyName: 'COD_IMOVEL',
+            propertyName: 'cod_imovel',
             marker: false
           });
           map.addControl(searchControl);
@@ -150,10 +150,10 @@
               map.removeLayer(connectionLine);
             }
             var searchedFeature = e.layer.feature;
-            var searchedCode = searchedFeature.properties.COD_IMOVEL;
+            var searchedCode = searchedFeature.properties.cod_imovel;
             var centroid2023 = e.layer.getBounds().getCenter();
             var matchFound = false;
-            car2.eachLayer(function(layer) {
+            later_year_car_data.eachLayer(function(layer) {
               if (layer.feature && layer.feature.properties.cod_imovel === searchedCode) {
                 matchFound = true;
                 var centroid2024 = layer.getBounds().getCenter();
@@ -166,21 +166,21 @@
             });
           });
 
-          // Add event listener for the 2023 toggle checkbox
-          document.getElementById('toggle2023').addEventListener('change', function (e) {
+          // Add event listener for the earlier year toggle checkbox
+          document.getElementById('toggle_earlier_year').addEventListener('change', function (e) {
             if (e.target.checked) {
-              map.addLayer(car1);
+              map.addLayer(early_year_car_data);
             } else {
-              map.removeLayer(car1);
+              map.removeLayer(early_year_car_data);
             }
           });
 
-          // Add event listener for the 2024 toggle checkbox
-          document.getElementById('toggle2024').addEventListener('change', function (e) {
+          // Add event listener for the later year toggle checkbox
+          document.getElementById('toggle_later_year').addEventListener('change', function (e) {
             if (e.target.checked) {
-              map.addLayer(car2);
+              map.addLayer(later_year_car_data);
             } else {
-              map.removeLayer(car2);
+              map.removeLayer(later_year_car_data);
             }
           });
         });

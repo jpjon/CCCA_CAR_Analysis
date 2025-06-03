@@ -93,6 +93,21 @@ prodes_gdf = gpd.read_file(prodes_file)
 prodes_gdf = prodes_gdf[['uuid', 'geometry']]
 prodes_gdf = prodes_gdf.to_crs(car_gdf_later_year.crs)
 
+def count_corners(geom):
+    if geom.geom_type == 'Polygon':
+        return len(geom.exterior.coords)
+    elif geom.geom_type == 'MultiPolygon':
+        return sum(len(poly.exterior.coords) for poly in geom.geoms)
+    else:
+        return 0
+
+prodes_gdf['num_prodes_corners'] = prodes_gdf.geometry.apply(count_corners)
+
+# Simplify PRODES geometries (tolerance can be adjusted as needed)
+simplify_tolerance = 0.0005
+prodes_gdf['geometry'] = prodes_gdf['geometry'].simplify(simplify_tolerance, preserve_topology=True)
+
+
 ##############################################
 #     Data Processing -- ArcGIS Analysis     #
 ##############################################
@@ -114,7 +129,8 @@ end_time = time.time()
 
 print(f"Spatial join completed in {end_time - start_time:.2f} seconds.")
 
-# Drop duplicates where one geometry intersects multiple PRODES features
+# Drop duplicates where one geometry intersects multiple PRODES features. Keep the largest intersect by number of corners.
+car_earlier_year_prodes_intersection_gdf = car_earlier_year_prodes_intersection_gdf.sort_values('num_prodes_corners', ascending=False)
 car_earlier_year_prodes_intersection_gdf = car_earlier_year_prodes_intersection_gdf.drop_duplicates(
     subset=['cod_imovel'], keep="first"
 )
@@ -153,22 +169,24 @@ print("Filtering to find cases where geometry changed and no longer intersects P
 
 # Filter to find cases where geometry changed and no longer intersects PRODES
 
+# Convert to Dask GeoDataFrame
+ddf = dgpd.from_geopandas(car_later_year_car_early_year_prodes_intersect_with_prodes, npartitions=8)
+
+def filter_func(df):
+    mask = (
+        df['geometry_changed'] &
+        ~df.apply(lambda row: row[f'geometry_{later_year}'].intersects(row['geometry_prodes']), axis=1)
+    )
+    return df[mask]
+
 start_time = time.time()
 
-filtered_indexes = [
-    row.Index for row in tqdm(
-        car_later_year_car_early_year_prodes_intersect_with_prodes.itertuples(), 
-        desc="Filtering geometries"
-    )
-    if row.geometry_changed and not row.__getattribute__(f'geometry_{later_year}').intersects(row.geometry_prodes)
-]
-
+with ProgressBar():
+    filtered_ddf = ddf.map_partitions(filter_func)
+    car_later_year_car_early_year_prodes_intersect_with_prodes = filtered_ddf.compute()
 end_time = time.time()
 
 print(f"Filtering completed in {end_time - start_time:.2f} seconds.")
-
-car_later_year_car_early_year_prodes_intersect_with_prodes = \
-    car_later_year_car_early_year_prodes_intersect_with_prodes.loc[filtered_indexes]
 
 ##############################################
 #     Data Processing -- Distance Analysis   #
@@ -234,5 +252,10 @@ for geom_col, filename in geometry_columns.items():
         gdf_out = gdf_out.to_crs(target_crs)
     
     output_path = os.path.join(output_dir, filename)
+    
+    # Only keep unique geometries for geometry_prodes
+    if geom_col == "geometry_prodes":
+        gdf_out = gdf_out.drop_duplicates(subset=[geom_col])
+    
     gdf_out.to_file(output_path, driver="GeoJSON")
     print(f"File saved: {output_path}")
