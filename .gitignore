@@ -1,0 +1,5 @@
+myenv/
+data/
+webmap/leaflet-ajax/package-lock.json
+webmap/data/
+outputs/
