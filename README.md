@@ -1,89 +1,137 @@
 # CCCA – Client-Facing Pipeline
 
-## Setup Instructions for Beginners
+A fully automated pipeline for analyzing changes in rural property boundaries (CARs) and their relationship to deforestation alerts (PRODES) in Brazil. The workflow is user-friendly and reproducible, requiring minimal manual intervention. All major steps are orchestrated by a single shell script (`run_pipeline.sh`), which guides the user through data selection, ingestion, processing, and visualization.
 
-### 0. Prerequisites
+---
+
+## 📋 Table of Contents
+
+1. [Prerequisites](#prerequisites)
+2. [Setup Instructions](#setup-instructions)
+    - [Install Python, pip, and virtualenv](#install-python-pip-and-virtualenv)
+    - [Clone the Repository](#clone-the-repository)
+    - [Set Up a Virtual Environment](#set-up-a-virtual-environment)
+    - [Install Dependencies](#install-dependencies)
+    - [Install Tesseract OCR](#install-tesseract-ocr)
+3. [SICAR Data Folder Structure & Assumptions](#sicar-data-folder-structure--assumptions)
+4. [Using Your Own Data](#using-your-own-data)
+5. [Running the Pipeline](#running-the-pipeline)
+6. [Workflow Overview](#workflow-overview)
+7. [Key Files](#key-files)
+8. [Output](#output)
+9. [Notes & Known Challenges](#notes--known-challenges)
+
+---
+
+## 1. Prerequisites
 
 - Python 3.10+
 - pip
 - virtualenv
 
-### 0.1. Install Python
+---
+
+## 2. Setup Instructions
+
+### 2.1. Install Python, pip, and virtualenv
+
+On Ubuntu/Debian:
 
 ```bash
-brew install python
+sudo apt install python3 python3-pip virtualenv
 ```
 
-### 0.2. Install pip
-
-```bash
-brew install pip
-```
-
-### 0.3. Install virtualenv
-
-```bash
-brew install virtualenv
-```
-
-### 0.4. Git clone and create a new branch
+### 2.2. Clone the Repository
 
 ```bash
 git clone <repo_url>
+cd CCCA_CAR_Analysis
 git checkout -b <branch_name>
 ```
 
-### 1. Setting up a Virtual Environment
-
-First, make sure you have Python installed on your system. Then:
+### 2.3. Set Up a Virtual Environment
 
 ```bash
-python -m venv myenv
+python3 -m venv myenv
 source myenv/bin/activate
 ```
 
-### 2. Installing Dependencies
+### 2.4. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
-``` 
-
-### 3. Install a new package
-
-```bash
-pip install <package_name>
 ```
-Save the new package to requirements.txt
+
+### 2.5. Install Tesseract OCR
+
+Some scripts require [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) for text extraction.  
+You must install both the Python package and the system dependency:
 
 ```bash
-pip freeze > requirements.txt
-``` 
+pip install pytesseract
+```
 
-### 4. Run a script
+On Ubuntu/Debian, also run:
 
 ```bash
-python src/scripts/script_name.py
-``` 
+sudo apt-get install tesseract-ocr
+```
+
+For other operating systems, see the [Tesseract installation instructions](https://github.com/tesseract-ocr/tesseract).
 
 ---
 
-## 🔧 Project Description
+## 3. SICAR Data Folder Structure & Assumptions
 
-This project provides a fully automated pipeline for analyzing changes in rural property boundaries (CARs) and their relationship to deforestation alerts (PRODES) in Brazil. The workflow is designed to be user-friendly and reproducible, requiring minimal manual intervention. All major steps are orchestrated by a single shell script (`run_pipeline.sh`), which guides the user through data selection, ingestion, processing, and visualization.
+- **For 2024 and prior years:**  
+  It is assumed that you will provide your own SICAR (CAR) data and place it in the appropriate folder:  
+  `data/SICAR/<year>/`  
+  For example, for 2022, place your CAR shapefiles or GeoPackages in `data/SICAR/2022/`.
 
-### What the Pipeline Does
-
-- **Prompts for Years:** The user is prompted to select two years for comparison (e.g., 2024 vs 2025).
-- **Data Validation & Ingestion:** The script checks if SICAR (CAR) and PRODES data for the selected years are present. If not, it downloads and prepares them automatically.
-- **Data Processing:** Python scripts standardize, clean, and harmonize CAR data across years, filter for valid rural properties, and perform spatial joins with PRODES deforestation polygons. The pipeline computes which CAR boundaries have changed and measures the geodesic distance between them.
-- **Spatial Analysis:** The pipeline identifies CAR parcels whose boundaries have changed and checks if these changes result in the parcel no longer intersecting with deforestation polygons.
-- **Export:** Results are exported as GeoJSON files for each geometry type (e.g., CAR for each year, PRODES, and distance lines), as well as a summary table.
-- **Web Map Visualization:** The pipeline copies the latest output GeoJSONs and a configuration file to the `webmap/data/` directory. The included Leaflet web map (`webmap/CCCA-webmap.html`) automatically reads these files and displays an interactive map for visual inspection and search.
-- **Config-Driven Visualization:** The web map dynamically loads the correct years and files based on a `config.json` file generated by the pipeline, so users always see the latest results without manual editing.
+- **For the latest year (e.g., 2025):**  
+  The pipeline uses the SICAR API to download the most recent data.  
+  **Important:** The downloaded data will be organized by state, so the folder structure must be:  
+  `data/SICAR/2025/<state>/`  
+  Each state subdirectory should contain the shapefiles for that state.  
+  This structure is required for the pipeline to correctly process the latest year.
 
 ---
 
-## 🚀 Workflow Overview
+## 4. Using Your Own Data
+
+You can manually upload your own datasets for analysis:
+
+- **PRODES Data:**  
+  Place your own PRODES deforestation data (as a GeoJSON, Shapefile, or GeoPackage) in the `data/PRODES/` folder.  
+  If you use a different filename or format, adjust the ingestion scripts or rename your file to match the expected input.
+
+- **SICAR (CAR) Data:**  
+  Place your own SICAR (CAR) data for any year in the corresponding folder:  
+  `data/SICAR/<year>/`  
+  For example, if you have CAR data for 2022, put it in `data/SICAR/2022/`.  
+  The folder should contain the shapefile or GeoPackage for that year.
+
+  For the **latest year** (e.g., 2025), the folder must be structured as:  
+  `data/SICAR/2025/<state>/`  
+  with each state subdirectory containing the relevant shapefiles.
+
+When you run the pipeline, it will automatically detect and use any data you have placed in these folders, as long as the folder structure and file formats are correct.
+
+---
+
+## 5. Running the Pipeline
+
+To run the entire workflow, use:
+
+```bash
+bash run_pipeline.sh
+```
+
+This command will guide you through the full workflow, from data download to interactive map visualization.
+
+---
+
+## 6. Workflow Overview
 
 When you run `bash run_pipeline.sh`, the following steps occur:
 
@@ -92,7 +140,7 @@ When you run `bash run_pipeline.sh`, the following steps occur:
 
 2. **Data Checks & Download:**  
    - The script checks for the existence of SICAR data folders for the selected years and the latest available year.
-   - If missing, it downloads and unzips the required SICAR and PRODES datasets.
+   - If missing, it downloads and unzips the required SICAR and PRODES datasets, or prompts you to add your own data.
 
 3. **Data Processing:**  
    - The main Python script (`data_processing/data_processing.py`) is run with the selected years as arguments.
@@ -113,7 +161,7 @@ When you run `bash run_pipeline.sh`, the following steps occur:
 
 ---
 
-## 📂 Key Files
+## 7. Key Files
 
 | File/Folder | Description |
 |-------------|-------------|
@@ -127,16 +175,7 @@ When you run `bash run_pipeline.sh`, the following steps occur:
 
 ---
 
-## ⚠️ Notes & Known Challenges
-
-- **Column name mismatches** across years are handled automatically during preprocessing.
-- **CRS is kept as EPSG:4674** (geographic) for geodesic distance calculations.
-- **Performance:** For very large datasets, some spatial operations may take several minutes.
-- **Webmap:** Always loads the most recent analysis results; no manual editing required.
-
----
-
-## 🗺️ Output
+## 8. Output
 
 After running the pipeline, you will find:
 
@@ -146,28 +185,26 @@ After running the pipeline, you will find:
 
 ---
 
-## ✅ To Run Everything At Once
+## 9. Notes & Known Challenges
 
-```bash
-bash run_pipeline.sh
-```
-
-This command will guide you through the full workflow, from data download to interactive map visualization.
+- **Column name mismatches** across years are handled automatically during preprocessing.
+- **CRS is kept as EPSG:4674** (geographic) for geodesic distance calculations.
+- **Performance:** For very large datasets, some spatial operations may take several minutes.
+- **Webmap:** Always loads the most recent analysis results; no manual editing required.
 
 ---
 
-## 📥 Using Your Own Data
+## ✅ To Install a New Python Package
 
-You can also manually upload your own datasets for analysis:
+```bash
+pip install <package_name>
+pip freeze > requirements.txt
+```
 
-- **PRODES Data:**  
-  Place your own PRODES deforestation data (as a GeoJSON, Shapefile, or GeoPackage) in the `data/PRODES/` folder. If you use a different filename or format, make sure to adjust the ingestion scripts or rename your file to match the expected input.
+---
 
-- **SICAR (CAR) Data:**  
-  Place your own SICAR (CAR) data for any year in the corresponding folder:  
-  `data/SICAR/<year>/`  
-  For example, if you have CAR data for 2022, put it in `data/SICAR/2022/`. The folder should contain the shapefile or GeoPackage for that year.
+## 🔧 Project Description (Summary)
 
-When you run the pipeline, it will automatically detect and use any data you have placed in these folders, as long as the folder structure and file formats are correct.
+This project provides a fully automated pipeline for analyzing changes in rural property boundaries (CARs) and their relationship to deforestation alerts (PRODES) in Brazil. The workflow is designed to be user-friendly and reproducible, requiring minimal manual intervention. All major steps are orchestrated by a single shell script (`run_pipeline.sh`), which guides the user through data selection, ingestion, processing, and visualization.
 
 ---
