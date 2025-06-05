@@ -30,15 +30,15 @@
   <div id="controls">
     <!-- CAR Layer Toggles -->
     <div id="layer-toggles">
-      <label class="switch-label">
-        2023
+      <label class="switch-label" id="label_earlier_year">
+        <!-- year1 will be inserted here by JS -->
         <label class="switch">
           <input type="checkbox" id="toggle_earlier_year" checked>
           <span class="slider"></span>
         </label>
       </label>
-      <label class="switch-label">
-        2024
+      <label class="switch-label" id="label_later_year">
+        <!-- year2 will be inserted here by JS -->
         <label class="switch">
           <input type="checkbox" id="toggle_later_year" checked>
           <span class="slider"></span>
@@ -61,7 +61,7 @@
 
     // Load the PRODES deforestation GeoJSON layer using AJAX and style it orange
     var prodes = new L.GeoJSON.AJAX("data/geometry_prodes.geojson", {
-      style: {color: 'brown'}
+      style: {color: 'brown', weight: 1},
     });             
     prodes.addTo(map);
 
@@ -117,6 +117,10 @@
         var year1 = config.year1;
         var year2 = config.year2;
 
+        // Update toggle labels dynamically
+        document.getElementById('label_earlier_year').childNodes[0].textContent = year1 + " ";
+        document.getElementById('label_later_year').childNodes[0].textContent = year2 + " ";
+
         // Now dynamically load the correct GeoJSONs
         var early_year_car_data = new L.GeoJSON.AJAX(`data/geometry_${year1}.geojson`, {
           onEachFeature: function(feature, layer){
@@ -134,7 +138,7 @@
           style: {color: 'red'},
         }).addTo(map);
 
-        // When the CAR 2023 layer has finished loading its data
+        // When the CAR early year layer has finished loading its data
         early_year_car_data.on('data:loaded', function () {
           var searchControl = new L.Control.Search({
             layer: early_year_car_data,
@@ -151,13 +155,13 @@
             }
             var searchedFeature = e.layer.feature;
             var searchedCode = searchedFeature.properties.cod_imovel;
-            var centroid2023 = e.layer.getBounds().getCenter();
+            var centroid_early_year = e.layer.getBounds().getCenter();
             var matchFound = false;
             later_year_car_data.eachLayer(function(layer) {
               if (layer.feature && layer.feature.properties.cod_imovel === searchedCode) {
                 matchFound = true;
-                var centroid2024 = layer.getBounds().getCenter();
-                connectionLine = L.polyline([centroid2023, centroid2024], {
+                var centroid_later_year = layer.getBounds().getCenter();
+                connectionLine = L.polyline([centroid_early_year, centroid_later_year], {
                   color: 'red',
                   weight: 2,
                   dashArray: '4, 4'
