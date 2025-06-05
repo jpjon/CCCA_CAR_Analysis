@@ -53,27 +53,41 @@ done
 read -p "Enter the first year: " YEAR1
 read -p "Enter the second year: " YEAR2
 
-
-# Create a function to check if a folder exists for a year
-check_data_exists() {
-    if [ -d "./data/SICAR/$1" ]; then
-        echo "✅ Found data folder for year $1."
+# Function to check if a folder exists for a year, and create if missing
+check_data_exists_and_not_empty() {
+    FOLDER="./data/SICAR/$1"
+    if [ ! -d "$FOLDER" ]; then
+        echo "⚠️  Data folder for year $1 not found. Creating empty folder: $FOLDER"
+        mkdir -p "$FOLDER"
+        echo "ℹ️  Created empty folder for year $1. Please add data (shapefiles) to this folder before running the pipeline."
+        return 1
+    elif [ -z "$(ls -A "$FOLDER" 2>/dev/null)" ]; then
+        echo "⚠️  Data folder for year $1 exists but is empty: $FOLDER"
+        echo "ℹ️  Please add data (shapefiles) to this folder before running the pipeline."
+        return 1
     else
-        echo "❌ Data folder for year $1 not found. Exiting."
-        exit 1
+        echo "✅ Found data folder for year $1 with data."
+        return 0
     fi
 }
 
-# For other year, check if folder exists
+MISSING=0
+
 if [[ "$YEAR1" != "$LATEST_YEAR" ]]; then
-    check_data_exists "$YEAR1"
+    check_data_exists_and_not_empty "$YEAR1" || MISSING=1
 fi
 
 if [[ "$YEAR2" != "$LATEST_YEAR" ]]; then
-    check_data_exists "$YEAR2"
+    check_data_exists_and_not_empty "$YEAR2" || MISSING=1
 fi
 
-# Run processing script
+if [[ "$MISSING" -eq 1 ]]; then
+    echo "❌ One or more required SICAR year folders were missing or empty."
+    echo "   Please add the necessary data to these folders and re-run the pipeline."
+    exit 1
+fi
+
+# Now run processing and visualization scripts
 echo "⚙️ Running data processing for $YEAR1 and $YEAR2..."
 python3 data_processing/data_processing.py "$YEAR1" "$YEAR2" "$LATEST_YEAR"
 
