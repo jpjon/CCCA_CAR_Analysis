@@ -38,7 +38,6 @@ else:
 sicar_folders = {
     year1: f"./data/SICAR/{year1}",
     year2: f"./data/SICAR/{year2}",
-    latest_year: f"./data/SICAR/{latest_year}"
 }
 
 # Dictionary to store GeoDataFrames per year
