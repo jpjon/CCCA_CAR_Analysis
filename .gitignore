@@ -3,3 +3,5 @@ data/
 webmap/leaflet-ajax/package-lock.json
 webmap/data/
 outputs/
+data_processing/developing_data_processing.ipynb
+images/
