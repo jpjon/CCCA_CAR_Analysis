@@ -4,22 +4,25 @@ A fully automated pipeline for analyzing changes in rural property boundaries (C
 
 ---
 
+![Map Preview](images/example.png)
+
 ## 📋 Table of Contents
 
-1. [Prerequisites](#prerequisites)
-2. [Setup Instructions](#setup-instructions)
-    - [Install Python, pip, and virtualenv](#install-python-pip-and-virtualenv)
-    - [Clone the Repository](#clone-the-repository)
-    - [Set Up a Virtual Environment](#set-up-a-virtual-environment)
-    - [Install Dependencies](#install-dependencies)
-    - [Install Tesseract OCR](#install-tesseract-ocr)
-3. [SICAR Data Folder Structure & Assumptions](#sicar-data-folder-structure--assumptions)
-4. [Using Your Own Data](#using-your-own-data)
-5. [Running the Pipeline](#running-the-pipeline)
-6. [Workflow Overview](#workflow-overview)
-7. [Key Files](#key-files)
-8. [Output](#output)
-9. [Notes & Known Challenges](#notes--known-challenges)
+1. [Prerequisites](#1-prerequisites)
+2. [Setup Instructions](#2-setup-instructions)
+    - [Install Python, pip, and virtualenv](#21-install-python-pip-and-virtualenv)
+    - [Clone the Repository](#22-clone-the-repository)
+    - [Set Up a Virtual Environment](#23-set-up-a-virtual-environment)
+    - [Install Dependencies](#24-install-dependencies)
+    - [Install Tesseract OCR](#25-install-tesseract-ocr)
+3. [SICAR Data Folder Structure & Assumptions](#3-sicar-data-folder-structure--assumptions)
+4. [Using Your Own Data](#4-using-your-own-data)
+5. [Running the Pipeline](#5-running-the-pipeline)
+6. [Workflow Overview](#6-workflow-overview)
+7. [Key Files](#7-key-files)
+8. [Output](#8-output)
+9. [Notes & Known Challenges](#9-notes--known-challenges)
+10. [To Install a New Python Package](#-to-install-a-new-python-package)
 
 ---
 
@@ -200,11 +203,5 @@ After running the pipeline, you will find:
 pip install <package_name>
 pip freeze > requirements.txt
 ```
-
----
-
-## 🔧 Project Description (Summary)
-
-This project provides a fully automated pipeline for analyzing changes in rural property boundaries (CARs) and their relationship to deforestation alerts (PRODES) in Brazil. The workflow is designed to be user-friendly and reproducible, requiring minimal manual intervention. All major steps are orchestrated by a single shell script (`run_pipeline.sh`), which guides the user through data selection, ingestion, processing, and visualization.
 
 ---
