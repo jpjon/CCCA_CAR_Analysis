@@ -1,0 +1,20 @@
+# Martin will auto-discover tables, but we can add custom settings
+postgres:
+  connection_string: ${DATABASE_URL}
+  
+# Optional: Define how tables should be served
+# tables:
+#   car_2023:
+#     id_column: cod_imovel
+#     geometry_column: geometry
+#     srid: 4674
+    
+#   car_2024:
+#     id_column: cod_imovel
+#     geometry_column: geometry
+#     srid: 4674
+    
+#   prodes:
+#     id_column: uuid
+#     geometry_column: geometry
+#     srid: 4674

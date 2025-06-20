@@ -1,0 +1,33 @@
+services:
+  postgis:
+    image: postgis/postgis:15-3.3
+    container_name: geoanalytics_db
+    environment:
+      POSTGRES_DB: geoanalytics
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+      - ../db/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  martin:
+    image: maplibre/martin
+    container_name: geoanalytics_tiles
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgis:5432/geoanalytics
+    depends_on:
+      postgis:
+        condition: service_healthy
+    volumes:
+      - ./martin/config.yaml:/config.yaml
+    command: ["--config", "/config.yaml"]
