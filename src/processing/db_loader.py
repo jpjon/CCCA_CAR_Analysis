@@ -9,8 +9,10 @@ class PostGISLoader:
         self.engine = create_engine(connection_string)
         
     def load_car_data(self, gdf, year):
-        """Load CAR data into year-specific table"""
-        table_name = f"car_{year}"
+        """Load CAR data into unified table with year column"""
+        
+        # Add year column to the dataframe
+        gdf['year'] = year
         
         # Ensure geometry column is properly set
         if gdf.crs is None:
@@ -19,15 +21,44 @@ class PostGISLoader:
             gdf = gdf.to_crs("EPSG:4674")
         
         # Load to PostGIS
-        print(f"Loading {len(gdf)} records to {table_name}...")
+        print(f"Loading {len(gdf)} records for year {year}...")
+        
+        # First time loading? Use 'replace'. Otherwise 'append'
+        # Check if table exists and has data
+        with self.engine.connect() as conn:
+            result = conn.execute(text("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE table_schema = 'public' 
+                    AND table_name = 'car_data'
+                );
+            """)).scalar()
+            
+            table_exists = result
+            
+            if table_exists:
+                # Check if this year's data already exists
+                year_exists = conn.execute(
+                    text("SELECT EXISTS(SELECT 1 FROM car_data WHERE year = :year LIMIT 1);"),
+                    {"year": year}
+                ).scalar()
+                
+                if year_exists:
+                    # Delete existing data for this year before inserting
+                    print(f"Removing existing data for year {year}...")
+                    conn.execute(text("DELETE FROM car_data WHERE year = :year;"), {"year": year})
+                    conn.commit()
+        
+        # Load the data
         gdf.to_postgis(
-            table_name, 
+            "car_data", 
             self.engine, 
-            if_exists='replace', 
+            if_exists='append' if table_exists else 'replace', 
             index=False,
             dtype={'geometry': 'geometry'}
         )
-        print(f"Successfully loaded data to {table_name}")
+        
+        print(f"Successfully loaded {len(gdf)} records for year {year}")
         
     def load_prodes_data(self, gdf):
         """Load PRODES data"""
@@ -46,16 +77,25 @@ class PostGISLoader:
         )
         print("Successfully loaded PRODES data")
         
-    def save_analysis_results(self, results_df):
-        """Save analysis results to database"""
-        # Remove geometry columns for the analysis table
-        results_df = results_df.drop(columns=[col for col in results_df.columns if 'geometry' in col or 'centroid' in col])
+    def execute_sql(self, sql_query):
+        """Execute a SQL query"""
+        with self.engine.connect() as conn:
+            conn.execute(text(sql_query))
+            conn.commit()
+            
+    def get_year_summary(self):
+        """Get summary of loaded CAR data by year"""
+        query = """
+        SELECT 
+            year,
+            COUNT(*) as record_count,
+            COUNT(DISTINCT cod_imovel) as unique_properties,
+            COUNT(DISTINCT cod_estado) as states_count
+        FROM car_data
+        GROUP BY year
+        ORDER BY year;
+        """
         
-        print("Saving analysis results...")
-        results_df.to_sql(
-            "analysis_results",
-            self.engine,
-            if_exists='append',
-            index=False
-        )
-        print("Analysis results saved")
+        with self.engine.connect() as conn:
+            result = conn.execute(text(query))
+            return result.fetchall()

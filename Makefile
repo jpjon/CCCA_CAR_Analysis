@@ -1,4 +1,8 @@
-.PHONY: start stop load-data setup clean web
+.PHONY: start stop load-data analyze run-all setup clean web logs psql
+
+# Configuration variables
+YEARS ?= 2023,2024,2025
+LATEST_YEAR ?= 2025
 
 # Start all services
 start:
@@ -11,9 +15,19 @@ start:
 stop:
 	cd docker && docker-compose down
 
-# Load data into PostGIS
+# Load CAR and PRODES data into PostGIS
 load-data:
-	python src/processing/spatial_analysis_postgis.py $(YEAR1) $(YEAR2) $(LATEST_YEAR)
+	@echo "Loading data for years: $(YEARS)"
+	@echo "Latest year with state folders: $(LATEST_YEAR)"
+	python src/processing/load_car_prodes_data.py --years $(YEARS) --latest-year $(LATEST_YEAR)
+
+# Run CAR analysis
+analyze:
+	@echo "Running analysis for years: $(YEARS)"
+	python src/processing/run_car_analysis.py --years $(YEARS)
+
+# Run full pipeline (load + analyze)
+run-all: load-data analyze
 
 # Initial setup
 setup:
@@ -41,3 +55,18 @@ web:
 # Or if you have Node.js:
 web-node:
 	cd web && npx http-server -p 8080
+
+# Help
+help:
+	@echo "Available targets:"
+	@echo "  make start          - Start Docker services"
+	@echo "  make stop           - Stop Docker services"
+	@echo "  make load-data      - Load CAR and PRODES data (default years: $(YEARS))"
+	@echo "  make analyze        - Run analysis on loaded data"
+	@echo "  make run-all        - Load data and run analysis"
+	@echo "  make clean          - Remove all data and containers"
+	@echo "  make psql           - Access PostgreSQL CLI"
+	@echo ""
+	@echo "To use different years:"
+	@echo "  make load-data YEARS=2020,2021,2022,2023,2024,2025 LATEST_YEAR=2025"
+	@echo "  make analyze YEARS=2020,2021,2022,2023,2024,2025"
