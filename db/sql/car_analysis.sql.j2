@@ -6,23 +6,24 @@
 
 -- 1. Find CAR parcels from {{ earlier_year }} intersecting PRODES, keep only the largest intersect from PRODES per cod_imovel
 DROP TABLE IF EXISTS car_year_earlier_prodes_intersect;
-CREATE TEMP TABLE car_year_earlier_prodes_intersect AS
-WITH ranked AS (
-    SELECT
-        car.id,
-        car.cod_imovel,
-        car.ind_status,
-        car.ind_tipo,
-        car.cod_estado,
-        car.geometry,
-        car.year,
-        ROW_NUMBER() OVER (PARTITION BY car.cod_imovel ORDER BY ST_Area(ST_Intersection(car.geometry, prodes.geometry)) DESC) AS rn
-    FROM car_data AS car
-    JOIN prodes
-      ON ST_Intersects(car.geometry, prodes.geometry)
-    WHERE car.year = {{ earlier_year }}
+EXPLAIN ANALYZE CREATE TEMP TABLE car_year_earlier_prodes_intersect AS
+WITH filtered_car AS (
+    SELECT * FROM car_data WHERE year = 2023
 )
-SELECT * FROM ranked WHERE rn = 1;
+SELECT DISTINCT ON (car.cod_imovel)
+    car.id,
+    car.cod_imovel,
+    car.ind_status,
+    car.ind_tipo,
+    car.cod_estado,
+    car.geometry,
+    car.year,
+    prodes.area_km
+FROM filtered_car AS car
+JOIN prodes
+    ON car.geometry && prodes.geometry
+    AND ST_Intersects(car.geometry, prodes.geometry)
+ORDER BY car.cod_imovel, prodes.area_km DESC;
 
 -- Create index on temp table for better join performance
 CREATE INDEX idx_temp_cod_imovel ON car_year_earlier_prodes_intersect(cod_imovel);

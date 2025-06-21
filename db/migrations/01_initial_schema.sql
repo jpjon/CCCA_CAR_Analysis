@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS prodes (
     id SERIAL PRIMARY KEY,
     uuid VARCHAR(255) UNIQUE NOT NULL,
     num_corners INTEGER,
+    area_km NUMERIC(10, 2) NOT NULL,
     geometry GEOMETRY(MultiPolygon, 4674),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -31,8 +32,7 @@ CREATE INDEX idx_car_data_geometry ON car_data USING GIST (geometry);
 -- Compound index for year + cod_imovel lookups (very important for joins)
 CREATE INDEX idx_car_data_year_cod_imovel ON car_data (year, cod_imovel);
 
--- Individual indexes for filtering
-CREATE INDEX idx_car_data_year ON car_data (year);
+-- Individual indexes for filtering by cod_imovel
 CREATE INDEX idx_car_data_cod_imovel ON car_data (cod_imovel);
 
 -- Index for status filtering

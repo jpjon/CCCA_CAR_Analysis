@@ -7,6 +7,7 @@ from tqdm import tqdm
 import time
 import os
 import argparse
+import gc
 
 from db_loader import PostGISLoader
 
@@ -74,6 +75,8 @@ def main():
                     gdf = gpd.read_file(file_path)
                     sicar_dataframes.append(gdf)
             car_gdf = gpd.GeoDataFrame(pd.concat(sicar_dataframes, ignore_index=True))
+            del gdf, sicar_dataframes
+            gc.collect()
         else:
             shp_files = [f for f in os.listdir(CAR_yearly_data) if f.endswith(".shp")]
             for file in shp_files:
@@ -96,16 +99,20 @@ def main():
         end_time = time.time()
         
         print(f"Preprocessed and loaded CAR data for year {year} in {end_time - start_time:.2f} seconds.")
-
+        
+        # Clear memory
+        del car_gdf
+        gc.collect()
+        
     # Display summary of loaded data
     print("\nSummary of loaded CAR data:")
     summary = loader.get_year_summary()
     for row in summary:
         print(f"Year {row[0]}: {row[1]:,} records, {row[2]:,} unique properties, {row[3]} states")
 
-    ##############################################
-    #       Preprocess and Load PRODES data      #
-    ##############################################
+    # ##############################################
+    # #       Preprocess and Load PRODES data      #
+    # ##############################################
 
     print("\nLoading PRODES data...")
 
@@ -118,7 +125,9 @@ def main():
     start_time = time.time()
 
     prodes_gdf = gpd.read_file(prodes_file)
-    prodes_gdf = prodes_gdf[['uuid', 'geometry']]
+    prodes_gdf = prodes_gdf[['uuid', 'geometry', 'area_km']]
+    prodes_gdf['area_km'] = prodes_gdf['area_km'].round(3)
+    prodes_gdf = prodes_gdf[prodes_gdf.geometry.is_valid]
     loader.load_prodes_data(prodes_gdf)
 
     end_time = time.time()
