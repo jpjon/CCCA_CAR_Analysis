@@ -1,20 +1,11 @@
-# Martin will auto-discover tables, but we can add custom settings
+# Martin configuration for CAR analysis
 postgres:
   connection_string: ${DATABASE_URL}
   
-# Optional: Define how tables should be served
-# tables:
-#   car_2023:
-#     id_column: cod_imovel
-#     geometry_column: geometry
-#     srid: 4674
-    
-#   car_2024:
-#     id_column: cod_imovel
-#     geometry_column: geometry
-#     srid: 4674
-    
-#   prodes:
-#     id_column: uuid
-#     geometry_column: geometry
-#     srid: 4674
+tables:
+  car_earlier:
+    schema: public
+    table: car_changed_to_exclude_prodes
+    geometry_column: geometry_earlier
+    srid: 4674
+    geometry_type: POLYGON

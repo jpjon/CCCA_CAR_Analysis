@@ -35,16 +35,27 @@ CREATE INDEX idx_car_data_year_cod_imovel ON car_data (year, cod_imovel);
 -- Individual indexes for filtering by cod_imovel
 CREATE INDEX idx_car_data_cod_imovel ON car_data (cod_imovel);
 
--- Index for status filtering
-CREATE INDEX idx_car_data_ind_status ON car_data (ind_status);
-
--- Index for tipo filtering
-CREATE INDEX idx_car_data_ind_tipo ON car_data (ind_tipo);
-
--- Compound index for your typical WHERE clause pattern
-CREATE INDEX idx_car_data_tipo_status_year ON car_data (ind_tipo, ind_status, year) 
-WHERE ind_tipo = 'IRU' AND ind_status IN ('AT', 'PE');
-
 -- PRODES indexes (unchanged)
 CREATE INDEX idx_prodes_geometry ON prodes USING GIST (geometry);
 CREATE INDEX idx_prodes_uuid ON prodes (uuid);
+
+CREATE TABLE car_changed_to_exclude_prodes (
+    id SERIAL PRIMARY KEY,
+    cod_imovel VARCHAR(255),
+    year_earlier INTEGER,
+    year_later INTEGER,
+    ind_status VARCHAR(10),
+    ind_tipo VARCHAR(10),
+    cod_estado VARCHAR(10),
+    geometry_earlier GEOMETRY(Geometry, 4674),
+    geometry_later GEOMETRY(Geometry, 4674),
+    centroid_earlier GEOMETRY(Point, 4674),
+    centroid_later GEOMETRY(Point, 4674),
+    geodesic_distance DOUBLE PRECISION,
+    distance_line GEOMETRY(LineString, 4674),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_changed_year_pair ON car_changed_to_exclude_prodes(year_earlier, year_later);
+CREATE INDEX idx_changed_cod_imovel ON car_changed_to_exclude_prodes(cod_imovel);
+CREATE INDEX idx_changed_geodesic_distance ON car_changed_to_exclude_prodes(geodesic_distance);

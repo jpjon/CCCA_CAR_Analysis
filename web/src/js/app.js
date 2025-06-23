@@ -10,13 +10,9 @@ const map = new maplibregl.Map({
                 tileSize: 256,
                 attribution: '© CARTO'
             },
-            'car-2024': {
+            'car_changed_to_exclude_prodes': {
                 type: 'vector',
-                tiles: ['http://localhost:3000/car_2024/{z}/{x}/{y}']
-            },
-            'car-2025': {
-                type: 'vector',
-                tiles: ['http://localhost:3000/car_2025/{z}/{x}/{y}']
+                tiles: ['http://localhost:3000/car_changed_to_exclude_prodes.3/{z}/{x}/{y}']
             },
             'prodes': {
                 type: 'vector',
@@ -38,30 +34,18 @@ map.addControl(new maplibregl.NavigationControl());
 
 // Add layers when map loads
 map.on('load', () => {
-    // Add 2024 CAR data
+
+    // Add CAR data
     map.addLayer({
-        id: 'car-2024-fill',
+        id: 'car-fill',
         type: 'fill',
-        source: 'car-2024',
-        'source-layer': 'car_2024',
+        source: 'car_changed_to_exclude_prodes.3',
+        'source-layer': 'car_changed_to_exclude_prodes.3',
         paint: {
-            'fill-color': '#FF6B6B',
-            'fill-opacity': 0.6
+            'fill-color': '#0000FF',
+            'fill-opacity': 0.5
         }
     });
-
-    // Add 2025 CAR data
-    map.addLayer({
-        id: 'car-2025-fill',
-        type: 'fill',
-        source: 'car-2025',
-        'source-layer': 'car_2025',
-        paint: {
-            'fill-color': '#4ECDC4',
-            'fill-opacity': 0.6
-        }
-    });
-
     // Add PRODES data
     map.addLayer({
         id: 'prodes-fill',

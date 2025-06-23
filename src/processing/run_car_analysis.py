@@ -27,45 +27,31 @@ def main():
     
     # Initialize loader
     loader = PostGISLoader()
+        
+    ##############################################
+    #  Subdivide Prodes Geometry for later use   #
+    ##############################################
+    start_time = time.time()
     
+    with open('db/sql/01_subdivide_prodes.sql', 'r') as f:
+        sql_query = f.read()
+        
+        loader.execute_sql(sql_query)
+    
+    end_time = time.time()
+    
+    print(f"Created Prodes subdivided geometry table for use in analysis in {end_time - start_time:.2f} seconds")
+        
     ##############################################
     #         Run SQL Analysis for All Pairs    #
     ##############################################
 
-    # Read the SQL template
-    with open('db/sql/car_analysis.sql.j2', 'r') as f:
+    # Read the SQL template for car analysis
+    with open('db/sql/02_car_analysis.sql.j2', 'r') as f:
         sql_template = Template(f.read())
         
     # Create year pairs: (2020,2021), (2021,2022), ..., (2024,2025)
     year_pairs = [(years[i], years[i+1]) for i in range(len(years)-1)]
-
-    # Create table to store all results across years
-    create_results_table_sql = """
-    DROP TABLE IF EXISTS car_changed_to_exclude_prodes;
-    CREATE TABLE car_changed_to_exclude_prodes (
-        id SERIAL PRIMARY KEY,
-        cod_imovel VARCHAR(255),
-        year_earlier INTEGER,
-        year_later INTEGER,
-        ind_status VARCHAR(10),
-        ind_tipo VARCHAR(10),
-        cod_estado VARCHAR(10),
-        geometry_earlier GEOMETRY(Geometry, 4674),
-        geometry_later GEOMETRY(Geometry, 4674),
-        centroid_earlier GEOMETRY(Point, 4674),
-        centroid_later GEOMETRY(Point, 4674),
-        geodesic_distance DOUBLE PRECISION,
-        distance_line GEOMETRY(LineString, 4674),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE INDEX idx_changed_year_pair ON car_changed_to_exclude_prodes(year_earlier, year_later);
-    CREATE INDEX idx_changed_cod_imovel ON car_changed_to_exclude_prodes(cod_imovel);
-    CREATE INDEX idx_changed_geodesic_distance ON car_changed_to_exclude_prodes(geodesic_distance);
-    """
-
-    print("\nCreating results table...")
-    loader.execute_sql(create_results_table_sql)
 
     for earlier_year, later_year in year_pairs:
         print(f"\n{'='*60}")
@@ -141,7 +127,10 @@ def main():
     """
 
     try:
-        loader.execute_sql(summary_sql)
+        # Use fresh connection for summary table creation
+        with loader.engine.connect() as conn:
+            conn.execute(text(summary_sql))
+            conn.commit()
         
         # Show the summary results
         summary_results_query = """
@@ -175,7 +164,9 @@ def main():
         FROM car_changed_to_exclude_prodes;
         """
         
-        overall_results = conn.execute(text(overall_query)).fetchone()
+        # Use fresh connection for overall results
+        with loader.engine.connect() as conn:
+            overall_results = conn.execute(text(overall_query)).fetchone()
         
         print("\n" + "=" * 80)
         print(f"OVERALL STATISTICS:")

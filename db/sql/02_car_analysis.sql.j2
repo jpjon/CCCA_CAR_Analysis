@@ -1,0 +1,113 @@
+DROP TABLE IF EXISTS car_geom_changed;
+EXPLAIN ANALYZE CREATE TABLE car_geom_changed AS
+WITH filtered_car_year_earlier AS (
+    SELECT * FROM car_data WHERE year = {{ earlier_year }}
+),
+car_year_earlier_prodes_intersect AS (
+    SELECT DISTINCT ON (car.cod_imovel)
+    car.id,
+    car.cod_imovel,
+    car.ind_status,
+    car.ind_tipo,
+    car.cod_estado,
+    car.geometry,
+    car.year,
+    prodes.area_km
+FROM filtered_car_year_earlier AS car
+JOIN prodes
+    ON car.geometry && prodes.geometry
+    AND ST_Intersects(car.geometry, prodes.geometry)
+ORDER BY car.cod_imovel, prodes.area_km DESC
+),
+filtered_car_year_later AS (
+    SELECT * FROM car_data WHERE year = {{ later_year }}
+),
+car_year_earlier_car_year_later_joined AS (
+    SELECT
+    e.id,
+    e.cod_imovel,
+    e.ind_status,
+    e.ind_tipo,
+    e.cod_estado,
+    e.geometry,
+    e.year,
+    l.geometry AS geometry_later,
+    NOT ST_Equals(e.geometry, l.geometry) AS geometry_changed
+FROM car_year_earlier_prodes_intersect e
+JOIN filtered_car_year_later l
+ON e.cod_imovel = l.cod_imovel
+AND NOT ST_Equals(e.geometry, l.geometry)
+)
+SELECT *
+FROM car_year_earlier_car_year_later_joined;
+
+CREATE INDEX IF NOT EXISTS idx_car_geom_changed_geometry_later 
+    ON car_geom_changed USING GIST (geometry_later);
+CREATE INDEX IF NOT EXISTS idx_car_geom_changed_cod_imovel
+    ON car_geom_changed (cod_imovel);
+
+-- Step 1: Materialize the intersections (those that DO intersect with prodes) using prodes subdivided geometries
+DROP TABLE IF EXISTS car_intersects_prodes;
+EXPLAIN ANALYZE CREATE TABLE car_intersects_prodes AS
+SELECT DISTINCT c.cod_imovel
+FROM car_geom_changed c
+JOIN prodes_subdivided p ON c.geometry_later && p.geometry 
+WHERE ST_Intersects(c.geometry_later, p.geometry);
+
+
+-- Step 2: Anti-join to find those that DON'T intersect
+DROP TABLE IF EXISTS car_no_prodes_intersection;
+EXPLAIN ANALYZE CREATE TABLE car_no_prodes_intersection AS
+SELECT c.cod_imovel,
+    c.ind_status,
+    c.ind_tipo,
+    c.cod_estado,
+    c.geometry AS geometry_earlier,
+    c.geometry_later
+FROM car_geom_changed c
+LEFT JOIN car_intersects_prodes ic ON c.cod_imovel = ic.cod_imovel
+WHERE ic.cod_imovel IS NULL;
+
+-- 5. Calculate distances and prepare final results
+INSERT INTO car_changed_to_exclude_prodes (
+    cod_imovel,
+    year_earlier,
+    year_later,
+    ind_status,
+    ind_tipo,
+    cod_estado,
+    geometry_earlier,
+    geometry_later,
+    centroid_earlier,
+    centroid_later,
+    geodesic_distance,
+    distance_line
+)
+SELECT 
+    cod_imovel,
+    {{ earlier_year }} as year_earlier,
+    {{ later_year }} as year_later,
+    ind_status,
+    ind_tipo,
+    cod_estado,
+    geometry_earlier,
+    geometry_later,
+    ST_Centroid(geometry_earlier) as centroid_earlier,
+    ST_Centroid(geometry_later) as centroid_later,
+    ST_Distance(
+        ST_Centroid(geometry_earlier)::geography,
+        ST_Centroid(geometry_later)::geography
+    ) as geodesic_distance,
+    ST_MakeLine(
+        ST_Centroid(geometry_earlier), 
+        ST_Centroid(geometry_later)
+    ) as distance_line
+FROM car_no_prodes_intersection;
+
+-- Create indexes on the final table for better query performance
+CREATE INDEX IF NOT EXISTS idx_car_changed_exclude_prodes_cod_imovel 
+    ON car_changed_to_exclude_prodes (cod_imovel);
+CREATE INDEX IF NOT EXISTS idx_car_changed_exclude_prodes_distance 
+    ON car_changed_to_exclude_prodes (geodesic_distance);
+CREATE INDEX IF NOT EXISTS idx_car_changed_exclude_prodes_years 
+    ON car_changed_to_exclude_prodes (year_earlier, year_later);

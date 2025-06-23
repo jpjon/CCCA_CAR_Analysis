@@ -1,6 +1,6 @@
 services:
   postgis:
-    image: postgis/postgis:15-3.3
+    image: postgis/postgis:17-3.5
     container_name: geoanalytics_db
     environment:
       POSTGRES_DB: geoanalytics
@@ -18,7 +18,7 @@ services:
       retries: 5
 
   martin:
-    image: maplibre/martin
+    image: ghcr.io/maplibre/martin:latest
     container_name: geoanalytics_tiles
     restart: unless-stopped
     ports:

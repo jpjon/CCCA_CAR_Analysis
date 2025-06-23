@@ -89,7 +89,6 @@ class PostGISLoader:
         SELECT 
             year,
             COUNT(*) as record_count,
-            COUNT(DISTINCT cod_imovel) as unique_properties,
             COUNT(DISTINCT cod_estado) as states_count
         FROM car_data
         GROUP BY year

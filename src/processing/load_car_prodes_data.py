@@ -108,7 +108,7 @@ def main():
     print("\nSummary of loaded CAR data:")
     summary = loader.get_year_summary()
     for row in summary:
-        print(f"Year {row[0]}: {row[1]:,} records, {row[2]:,} unique properties, {row[3]} states")
+        print(f"Year {row[0]}: {row[1]:,} records, {row[2]} states")
 
     # ##############################################
     # #       Preprocess and Load PRODES data      #
