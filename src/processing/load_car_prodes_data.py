@@ -60,7 +60,6 @@ def main():
         year_str = str(year)
         CAR_yearly_data = sicar_folders[year_str]
         
-        print(f"\nPreprocessing year {year}...")
         start_time = time.time()
         
         if year == latest_year:
@@ -92,13 +91,13 @@ def main():
         car_gdf = car_gdf.drop_duplicates(subset=['cod_imovel'], keep='first')
         car_gdf = car_gdf[car_gdf.geometry.is_valid]
         
-        print(f"Loading CAR year {year} into PostGIS...")
+        print(f"Starting preprocessing and loading CAR year {year} into PostGIS...")
         
         loader.load_car_data(car_gdf, year)
 
         end_time = time.time()
         
-        print(f"Preprocessed and loaded CAR data for year {year} in {end_time - start_time:.2f} seconds.")
+        print(f"Successfully preprocessed and loaded CAR data to PostGIS for year {year} in {end_time - start_time:.2f} seconds.")
         
         # Clear memory
         del car_gdf
@@ -114,7 +113,7 @@ def main():
     # #       Preprocess and Load PRODES data      #
     # ##############################################
 
-    print("\nLoading PRODES data...")
+    print("\n Starting preprocessing and loading PRODES data into PostGIS...")
 
     prodes_folder = "./data/PRODES"
     prodes_file = os.path.join(prodes_folder, 'prodes_amazonia_nb.gpkg')
@@ -132,7 +131,7 @@ def main():
 
     end_time = time.time()
 
-    print(f"Preprocessed and loaded PRODES data in {end_time - start_time:.2f} seconds.")
+    print(f"Successfully preprocessed and loaded PRODES data to PostGIS in {end_time - start_time:.2f} seconds.")
     
     print("\nData loading completed successfully!")
 

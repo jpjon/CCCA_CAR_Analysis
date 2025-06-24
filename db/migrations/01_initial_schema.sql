@@ -10,10 +10,15 @@ CREATE TABLE IF NOT EXISTS car_data (
     ind_tipo VARCHAR(10),
     cod_estado VARCHAR(10),
     geometry GEOMETRY(Geometry, 4674),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    -- Ensure unique cod_imovel per year
     UNIQUE(cod_imovel, year)
 );
+
+-- Spatial index (critical for ST_Intersects and other spatial operations)
+CREATE INDEX idx_car_data_geometry ON car_data USING GIST (geometry);
+-- Compound index for year + cod_imovel lookups (very important for joins)
+CREATE INDEX idx_car_data_year_cod_imovel ON car_data (year, cod_imovel);
+-- Individual indexes for filtering by cod_imovel
+CREATE INDEX idx_car_data_cod_imovel ON car_data (cod_imovel);
 
 -- Create PRODES table
 CREATE TABLE IF NOT EXISTS prodes (
@@ -21,21 +26,10 @@ CREATE TABLE IF NOT EXISTS prodes (
     uuid VARCHAR(255) UNIQUE NOT NULL,
     num_corners INTEGER,
     area_km NUMERIC(10, 2) NOT NULL,
-    geometry GEOMETRY(MultiPolygon, 4674),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    geometry GEOMETRY(MultiPolygon, 4674)
 );
 
--- Create comprehensive indexes for performance
--- Spatial index (critical for ST_Intersects and other spatial operations)
-CREATE INDEX idx_car_data_geometry ON car_data USING GIST (geometry);
-
--- Compound index for year + cod_imovel lookups (very important for joins)
-CREATE INDEX idx_car_data_year_cod_imovel ON car_data (year, cod_imovel);
-
--- Individual indexes for filtering by cod_imovel
-CREATE INDEX idx_car_data_cod_imovel ON car_data (cod_imovel);
-
--- PRODES indexes (unchanged)
+-- PRODES indexes
 CREATE INDEX idx_prodes_geometry ON prodes USING GIST (geometry);
 CREATE INDEX idx_prodes_uuid ON prodes (uuid);
 
@@ -52,10 +46,21 @@ CREATE TABLE car_changed_to_exclude_prodes (
     centroid_earlier GEOMETRY(Point, 4674),
     centroid_later GEOMETRY(Point, 4674),
     geodesic_distance DOUBLE PRECISION,
-    distance_line GEOMETRY(LineString, 4674),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    distance_line GEOMETRY(LineString, 4674)
 );
 
 CREATE INDEX idx_changed_year_pair ON car_changed_to_exclude_prodes(year_earlier, year_later);
 CREATE INDEX idx_changed_cod_imovel ON car_changed_to_exclude_prodes(cod_imovel);
 CREATE INDEX idx_changed_geodesic_distance ON car_changed_to_exclude_prodes(geodesic_distance);
+
+-- PRODES table with only relevant geometries post analysis
+CREATE TABLE IF NOT EXISTS relevant_prodes (
+    uuid VARCHAR(255) UNIQUE NOT NULL,
+    geometry GEOMETRY(MultiPolygon, 4674)
+);
+
+-- Subdivided PRODES table with only relevant geometries post analysis
+CREATE TABLE IF NOT EXISTS relevant_prodes_subdivided (
+    uuid VARCHAR(255),
+    geometry GEOMETRY(MultiPolygon, 4674)
+);

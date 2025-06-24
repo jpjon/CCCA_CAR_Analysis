@@ -1,11 +1,3 @@
 # Martin configuration for CAR analysis
 postgres:
   connection_string: ${DATABASE_URL}
-  
-tables:
-  car_earlier:
-    schema: public
-    table: car_changed_to_exclude_prodes
-    geometry_column: geometry_earlier
-    srid: 4674
-    geometry_type: POLYGON

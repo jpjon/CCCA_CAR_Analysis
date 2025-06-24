@@ -17,6 +17,26 @@ services:
       timeout: 5s
       retries: 5
 
+  db-init:
+    image: postgres:17
+    depends_on:
+      postgis:
+        condition: service_healthy
+    entrypoint: >
+      bash -c "
+        echo 'Waiting for geometry_changes_view for year ${LATEST_YEAR}...';
+        until psql postgresql://postgres:postgres@postgis:5432/geoanalytics -U postgres -tAc \"
+          SELECT 1 FROM information_schema.views
+          WHERE table_name = 'geometry_changes_${LATEST_YEAR}_view'
+        \" | grep -q 1; do
+          echo 'Still waiting...';
+          sleep 3;
+        done
+        echo 'View geometry_changes_${LATEST_YEAR}_view is ready!';
+      "
+    environment:
+      - LATEST_YEAR
+
   martin:
     image: ghcr.io/maplibre/martin:latest
     container_name: geoanalytics_tiles
@@ -26,8 +46,8 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgis:5432/geoanalytics
     depends_on:
-      postgis:
-        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
     volumes:
       - ./martin/config.yaml:/config.yaml
     command: ["--config", "/config.yaml"]

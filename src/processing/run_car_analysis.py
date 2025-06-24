@@ -40,7 +40,7 @@ def main():
     
     end_time = time.time()
     
-    print(f"Created Prodes subdivided geometry table for use in analysis in {end_time - start_time:.2f} seconds")
+    print(f"Created complete Prodes subdivided geometry table for use in analysis in {end_time - start_time:.2f} seconds")
         
     ##############################################
     #         Run SQL Analysis for All Pairs    #
@@ -134,14 +134,24 @@ def main():
         
         # Show the summary results
         summary_results_query = """
+        WITH year_totals AS (
+            SELECT 
+                year,
+                COUNT(DISTINCT cod_imovel) as total_cadastres
+            FROM car_data
+            GROUP BY year
+        )
         SELECT 
-            year_pair,
-            parcel_count,
-            ROUND(avg_distance_meters::numeric, 2) as avg_distance_m,
-            ROUND(median_distance_meters::numeric, 2) as median_distance_m,
-            ROUND(max_distance_meters::numeric, 2) as max_distance_m
-        FROM car_analysis_summary 
-        ORDER BY year_earlier;
+            s.year_pair,
+            s.parcel_count,
+            t.total_cadastres,
+            ROUND((s.parcel_count::numeric / t.total_cadastres * 100), 2) as percentage,
+            ROUND(s.avg_distance_meters::numeric, 2) as avg_distance_m,
+            ROUND(s.median_distance_meters::numeric, 2) as median_distance_m,
+            ROUND(s.max_distance_meters::numeric, 2) as max_distance_m
+        FROM car_analysis_summary s
+        JOIN year_totals t ON s.year_later = t.year
+        ORDER BY s.year_earlier;
         """
         
         with loader.engine.connect() as conn:
@@ -149,34 +159,54 @@ def main():
         
         print("Summary table created successfully!")
         print("\nSUMMARY ACROSS ALL YEAR PAIRS:")
-        print("-" * 80)
-        print(f"{'Year Pair':<12} {'Count':<10} {'Avg Dist (m)':<15} {'Median Dist (m)':<15} {'Max Dist (m)':<12}")
-        print("-" * 80)
+        print("-" * 110)
+        print(f"{'Year Pair':<12} {'Moved':<10} {'Total':<12} {'%':<8} {'Avg Dist (m)':<15} {'Median Dist (m)':<15} {'Max Dist (m)':<12}")
+        print("-" * 110)
         for row in summary_results:
-            print(f"{row[0]:<12} {row[1]:<10,} {row[2]:<15} {row[3]:<15} {row[4]:<12}")
+            print(f"{row[0]:<12} {row[1]:<10,} {row[2]:<12,} {row[3]:<8.2f} {row[4]:<15} {row[5]:<15} {row[6]:<12}")
         
         # Overall summary
         overall_query = """
+        WITH total_unique_cadastres AS (
+            SELECT COUNT(DISTINCT cod_imovel) as total_unique
+            FROM car_data
+        ),
+        moved_unique_cadastres AS (
+            SELECT COUNT(DISTINCT cod_imovel) as moved_unique
+            FROM car_changed_to_exclude_prodes
+        )
         SELECT 
-            COUNT(*) as total_parcels,
+            COUNT(*) as total_movements,
+            moved.moved_unique as unique_cadastres_moved,
+            total.total_unique as total_unique_cadastres,
+            ROUND((moved.moved_unique::numeric / total.total_unique * 100), 2) as percentage_moved,
             ROUND(AVG(geodesic_distance)::numeric, 2) as overall_avg_distance,
             ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY geodesic_distance)::numeric, 2) as overall_median_distance
-        FROM car_changed_to_exclude_prodes;
+        FROM car_changed_to_exclude_prodes
+        CROSS JOIN total_unique_cadastres total
+        CROSS JOIN moved_unique_cadastres moved
+        GROUP BY moved.moved_unique, total.total_unique;
         """
         
         # Use fresh connection for overall results
         with loader.engine.connect() as conn:
             overall_results = conn.execute(text(overall_query)).fetchone()
         
-        print("\n" + "=" * 80)
+        print("\n" + "=" * 110)
         print(f"OVERALL STATISTICS:")
-        print(f"Total parcels across all years: {overall_results[0]:,}")
-        print(f"Overall average distance moved: {overall_results[1]} meters")
-        print(f"Overall median distance moved: {overall_results[2]} meters")
+        print(f"Total movement records across all years: {overall_results[0]:,}")
+        print(f"Unique cadastres that moved: {overall_results[1]:,} out of {overall_results[2]:,} total ({overall_results[3]:.2f}%)")
+        print(f"Overall average distance moved: {overall_results[4]} meters")
+        print(f"Overall median distance moved: {overall_results[5]} meters")
         
     except Exception as e:
         print(f"Error creating summary table: {str(e)}")
 
+    # Read the SQL template for car analysis
+    with open('db/sql/03_create_relevant_prodes_view.sql', 'r') as f:
+        sql_query = f.read()
+        loader.execute_sql(sql_query)
+        
     print("\nScript completed!")
 
 

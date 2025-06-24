@@ -12,7 +12,8 @@ car_year_earlier_prodes_intersect AS (
     car.cod_estado,
     car.geometry,
     car.year,
-    prodes.area_km
+    prodes.area_km,
+    prodes.uuid
 FROM filtered_car_year_earlier AS car
 JOIN prodes
     ON car.geometry && prodes.geometry
@@ -32,7 +33,8 @@ car_year_earlier_car_year_later_joined AS (
     e.geometry,
     e.year,
     l.geometry AS geometry_later,
-    NOT ST_Equals(e.geometry, l.geometry) AS geometry_changed
+    NOT ST_Equals(e.geometry, l.geometry) AS geometry_changed,
+    e.uuid
 FROM car_year_earlier_prodes_intersect e
 JOIN filtered_car_year_later l
 ON e.cod_imovel = l.cod_imovel
@@ -111,3 +113,40 @@ CREATE INDEX IF NOT EXISTS idx_car_changed_exclude_prodes_distance
     ON car_changed_to_exclude_prodes (geodesic_distance);
 CREATE INDEX IF NOT EXISTS idx_car_changed_exclude_prodes_years 
     ON car_changed_to_exclude_prodes (year_earlier, year_later);
+
+-- Create views for visualization
+CREATE VIEW geometry_changes_{{ later_year }}_view AS
+-- Year 1 geometries
+SELECT 
+    cod_imovel,
+    {{ earlier_year }} as year,
+    'before' as state,
+    geometry_earlier as geometry,
+    geodesic_distance,
+    ind_status,
+    ind_tipo,
+    distance_line
+FROM car_changed_to_exclude_prodes
+WHERE year_earlier = {{ earlier_year }}
+UNION ALL
+-- Year 2 geometries  
+SELECT 
+    cod_imovel,
+    {{ later_year }} as year,
+    'after' as state,
+    geometry_later as geometry,
+    geodesic_distance,
+    ind_status,
+    ind_tipo,
+    distance_line
+FROM car_changed_to_exclude_prodes
+WHERE year_later = {{ later_year }};
+
+-- Add relevant prodes
+INSERT INTO relevant_prodes (
+    uuid
+)
+SELECT
+    uuid
+FROM car_geom_changed
+ON CONFLICT (uuid) DO NOTHING;

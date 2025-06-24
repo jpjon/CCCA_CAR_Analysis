@@ -6,7 +6,7 @@ LATEST_YEAR ?= 2025
 
 # Start all services
 start:
-	cd docker && docker-compose up -d
+	cd docker && LATEST_YEAR=$(LATEST_YEAR) docker-compose up -d
 	@echo "Services started!"
 	@echo "PostGIS: localhost:5432"
 	@echo "Martin: localhost:3000"
