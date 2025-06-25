@@ -91,6 +91,12 @@ For other operating systems, see the [Tesseract installation instructions](https
   `data/SICAR/<year>/`  
   For example, for 2022, place your CAR shapefiles or GeoPackages in `data/SICAR/2022/`.
 
+  You can access historic SICAR data archived by CCCA [here](https://drive.google.com/drive/folders/1PuAtEQBBf177d9SBKemdCvKhT-Qf6Lu4).
+  - Download a .rar file
+  - Extract all contents into the specified folder, e.g., data/SICAR/2024/*
+  
+  TODO: Create process for uploading and arching new data.
+
 - **For the latest year (e.g., 2025):**  
   The pipeline uses the SICAR API to download the most recent data.  
   **Important:** The downloaded data will be organized by state, so the folder structure must be:  
