@@ -48,7 +48,7 @@ map.on('load', () => {
         'source-layer': 'geometry_changes_2025_view.1',
         paint: {
             'fill-color': '#165fc9',
-            'fill-opacity': 0.3
+            'fill-opacity': 0.5
         }
     });
 
@@ -61,7 +61,7 @@ map.on('load', () => {
         'source-layer': 'geometry_changes_2025_view.1',
         paint: {
             'fill-color': '#c91616',
-            'fill-opacity': 0.3
+            'fill-opacity': 0.5
         }
     });
 

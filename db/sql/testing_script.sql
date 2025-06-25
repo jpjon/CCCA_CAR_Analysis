@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS car_geom_changed;
 EXPLAIN ANALYZE CREATE TABLE car_geom_changed AS
 WITH filtered_car_year_earlier AS (
-    SELECT * FROM car_data WHERE year = 2023
+    SELECT * FROM car_data WHERE year = 2024
 ),
 car_year_earlier_prodes_intersect AS (
     SELECT DISTINCT ON (car.cod_imovel)
@@ -12,7 +12,8 @@ car_year_earlier_prodes_intersect AS (
     car.cod_estado,
     car.geometry,
     car.year,
-    prodes.area_km
+    prodes.area_km,
+    prodes.uuid
 FROM filtered_car_year_earlier AS car
 JOIN prodes
     ON car.geometry && prodes.geometry
@@ -20,7 +21,7 @@ JOIN prodes
 ORDER BY car.cod_imovel, prodes.area_km DESC
 ),
 filtered_car_year_later AS (
-    SELECT * FROM car_data WHERE year = 2024
+    SELECT * FROM car_data WHERE year = 2025
 ),
 car_year_earlier_car_year_later_joined AS (
     SELECT
@@ -32,7 +33,8 @@ car_year_earlier_car_year_later_joined AS (
     e.geometry,
     e.year,
     l.geometry AS geometry_later,
-    NOT ST_Equals(e.geometry, l.geometry) AS geometry_changed
+    NOT ST_Equals(e.geometry, l.geometry) AS geometry_changed,
+    e.uuid
 FROM car_year_earlier_prodes_intersect e
 JOIN filtered_car_year_later l
 ON e.cod_imovel = l.cod_imovel
@@ -85,8 +87,8 @@ INSERT INTO car_changed_to_exclude_prodes (
 )
 SELECT 
     cod_imovel,
-    2023 as year_earlier,
-    2024 as year_later,
+    2024 as year_earlier,
+    2025 as year_later,
     ind_status,
     ind_tipo,
     cod_estado,
@@ -111,3 +113,39 @@ CREATE INDEX IF NOT EXISTS idx_car_changed_exclude_prodes_distance
     ON car_changed_to_exclude_prodes (geodesic_distance);
 CREATE INDEX IF NOT EXISTS idx_car_changed_exclude_prodes_years 
     ON car_changed_to_exclude_prodes (year_earlier, year_later);
+
+CREATE VIEW geometry_changes_2025_view AS
+-- Year 1 geometries
+SELECT 
+    cod_imovel,
+    2024 as year,
+    'before' as state,
+    geometry_earlier as geometry,
+    geodesic_distance,
+    ind_status,
+    ind_tipo,
+    distance_line
+FROM car_changed_to_exclude_prodes
+WHERE year_earlier = 2024
+UNION ALL
+-- Year 2 geometries  
+SELECT 
+    cod_imovel,
+    2025 as year,
+    'after' as state,
+    geometry_later as geometry,
+    geodesic_distance,
+    ind_status,
+    ind_tipo,
+    distance_line
+FROM car_changed_to_exclude_prodes
+WHERE year_later = 2025;
+
+-- Add relevant prodes
+INSERT INTO relevant_prodes (
+    uuid
+)
+SELECT
+    uuid
+FROM car_geom_changed
+ON CONFLICT (uuid) DO NOTHING;
