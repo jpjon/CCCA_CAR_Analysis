@@ -6,14 +6,14 @@ LATEST_YEAR ?= 2025
 
 # Start all services
 start:
-	cd docker && LATEST_YEAR=$(LATEST_YEAR) docker-compose up -d
+	cd docker && LATEST_YEAR=$(LATEST_YEAR) docker compose up -d
 	@echo "Services started!"
 	@echo "PostGIS: localhost:5432"
 	@echo "Martin: localhost:3000"
 
 # Stop all services
 stop:
-	cd docker && docker-compose down
+	cd docker && docker compose down
 
 # Load CAR and PRODES data into PostGIS
 load-data:
@@ -37,12 +37,12 @@ setup:
 
 # Clean everything
 clean:
-	cd docker && docker-compose down -v
+	cd docker && docker compose down -v
 	rm -rf docker/pgdata
 
 # View logs
 logs:
-	cd docker && docker-compose logs -f
+	cd docker && docker compose logs -f
 
 # Access PostGIS
 psql:
