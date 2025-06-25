@@ -203,6 +203,7 @@ def main():
         print(f"Error creating summary table: {str(e)}")
 
     # Read the SQL template for car analysis
+    print("Subdividing PRODES data for visualization..")
     with open('db/sql/03_create_relevant_prodes_view.sql', 'r') as f:
         sql_query = f.read()
         loader.execute_sql(sql_query)
