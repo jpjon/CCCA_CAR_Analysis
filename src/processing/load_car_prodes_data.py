@@ -1,6 +1,5 @@
 
 from utils import rename_car_data
-import dask_geopandas as dgpd
 import geopandas as gpd
 import pandas as pd
 from tqdm import tqdm
