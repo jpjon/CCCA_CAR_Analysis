@@ -1,8 +1,9 @@
 import React from 'react';
 import { CONFIG } from '../config/config.js';
 import { generateYearColors } from '../utils/colors.js';
+import '../styles/YearToggleComponent.css'; 
 
-const YearToggleControls = ({ visibleYearComparisons, onToggleYear }) => {
+export default function YearToggleControls({ visibleYearComparisons, onToggleYear }) {
   const yearColors = generateYearColors(CONFIG.years);
 
   return (
@@ -20,11 +21,11 @@ const YearToggleControls = ({ visibleYearComparisons, onToggleYear }) => {
             <span
               className="color-swatch"
               style={{ backgroundColor: yearColors[year].before }}
-              title={`${year-1} (before)`}
+              title={`${year - 1} (before)`}
             />
             <span
               className="color-swatch"
-              style={{ 
+              style={{
                 backgroundColor: yearColors[year].after,
                 marginLeft: '2px'
               }}
@@ -35,6 +36,4 @@ const YearToggleControls = ({ visibleYearComparisons, onToggleYear }) => {
       ))}
     </div>
   );
-};
-
-export default YearToggleControls;
+}

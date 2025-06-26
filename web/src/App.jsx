@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import MapComponent from './components/MapComponent.jsx';
 import YearToggleControls from './components/YearToggleControls.jsx';
-import './styles/App.css';
 
-function App() {
+export default function App() {
   // Track which year comparisons are visible (year-over-year view)
   const [visibleYearComparisons, setVisibleYearComparisons] = useState(new Set());
 
@@ -30,5 +29,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
