@@ -1,22 +1,48 @@
 #year-controls {
   position: absolute;
-  top: 10px;
+  top: 80px;
   left: 10px;
   background: white;
-  padding: 10px;
-  border-radius: 5px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   z-index: 1000;
+  min-width: 250px;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-open #year-controls {
+  transform: translateX(300px);
+}
+
+#year-controls h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 16px;
+  color: #2c3e50;
 }
 
 .year-toggle {
-  display: block;
-  margin: 5px 0;
+  display: flex;
+  align-items: center;
+  margin: 8px 0;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.year-toggle input[type="checkbox"] {
+  margin-right: 10px;
+}
+
+.year-toggle span {
+  display: flex;
+  align-items: center;
 }
 
 .color-swatch {
   display: inline-block;
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border: 1px solid #ccc;
+  border-radius: 2px;
 }
