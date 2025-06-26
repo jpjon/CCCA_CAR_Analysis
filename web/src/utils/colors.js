@@ -5,8 +5,8 @@ export function generateYearColors(years) {
         const hue = (index * 360 / years.length) % 360;
         // Create distinct colors for before (previous year) and after (current year)
         colors[year] = {
-            before: `hsl(${hue}, 60%, 40%)`, // Darker/muted for "before" state
-            after: `hsl(${hue}, 80%, 60%)`   // Brighter for "after" state
+            before: `hsl(${hue}, 80%, 60%)`, // Brighter for "before" state
+            after: `hsl(${hue}, 40%, 60%)`   // Darker/muted for "after" state
         };
     });
     return colors;

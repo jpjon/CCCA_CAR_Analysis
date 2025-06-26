@@ -71,7 +71,7 @@ export default function MapComponent({ visibleYearComparisons  }) {
             'fill-opacity': 0.7
           },
           layout: {
-            // 'visibility': 'none'
+            'visibility': 'none'
           }
         });
 
@@ -87,7 +87,7 @@ export default function MapComponent({ visibleYearComparisons  }) {
             'fill-opacity': 0.7
           },
           layout: {
-            // 'visibility': 'none'
+            'visibility': 'none'
           }
         });
       });
