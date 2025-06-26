@@ -37,6 +37,22 @@ services:
     environment:
       - LATEST_YEAR
 
+  api:
+    build: 
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: geoanalytics_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgis:5432/geoanalytics
+    depends_on:
+      postgis:
+        condition: service_healthy
+    volumes:
+      - ./api:/app
+
   martin:
     image: ghcr.io/maplibre/martin:latest
     container_name: geoanalytics_tiles

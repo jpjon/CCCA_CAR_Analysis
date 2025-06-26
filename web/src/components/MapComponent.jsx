@@ -5,7 +5,7 @@ import '../styles/MapComponent.css';
 import { CONFIG } from '../config/config.js';
 import { generateYearColors } from '../utils/colors.js';
 
-export default function MapComponent({ visibleYearComparisons  }) {
+export default function MapComponent({ visibleYearComparisons, onMapReady }) {
   const mapContainerRef = useRef(null);
   const map = useRef(null);
   const mapLoaded = useRef(false);
@@ -108,6 +108,11 @@ export default function MapComponent({ visibleYearComparisons  }) {
 
       // Mark the map as loaded
       mapLoaded.current = true;
+
+      // Pass map instance to parent component
+      if (onMapReady) {
+        onMapReady(map.current);
+      }
 
       // Add popup functionality
       const popup = new maplibregl.Popup({
