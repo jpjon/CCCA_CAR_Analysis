@@ -15,6 +15,11 @@ start:
 stop:
 	cd docker && docker compose down
 
+# Ingest CAR and PRODES data
+ingest-data:
+	python src/ingestion/prodes.py
+	python src/ingestion/sicar.py
+
 # Load CAR and PRODES data into PostGIS
 load-data:
 	@echo "Loading data for years: $(YEARS)"
@@ -26,8 +31,8 @@ analyze:
 	@echo "Running analysis for years: $(YEARS)"
 	python src/processing/run_car_analysis.py --years $(YEARS)
 
-# Run full pipeline (load + analyze)
-run-all: load-data analyze
+# Run full pipeline (ingest, load + analyze, deploy)
+run-all: ingest-data load-data analyze
 
 # Initial setup
 setup:
@@ -50,11 +55,8 @@ psql:
 
 # Serve web interface
 web:
+	@echo "const CONFIG = { years: [$(shell echo $(YEARS) | cut -d',' -f2- | sed 's/,/,/g')] };" > web/config.js
 	cd web && python3 -m http.server 8080 --bind 127.0.0.1
-
-# Or if you have Node.js:
-web-node:
-	cd web && npx http-server -p 8080
 
 # Help
 help:

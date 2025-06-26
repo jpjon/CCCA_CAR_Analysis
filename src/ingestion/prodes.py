@@ -71,5 +71,13 @@ if __name__ == "__main__":
     os.makedirs(DATA_DIR, exist_ok=True)
     os.makedirs(PRODES_DIR, exist_ok=True)
 
-    # Download PRODES dataset
-    download_prodes_data()
+    # Ask user if they want to download PRODES data
+    user_input = input("Do you want to ingest PRODES data? (yes/no): ").strip().lower()
+
+    if user_input == "yes":
+        download_prodes_data()
+    elif user_input == "no":
+        print("Skipping PRODES data ingestion.")
+    else:
+        print("Invalid input. Please enter 'yes' or 'no'.")
+
