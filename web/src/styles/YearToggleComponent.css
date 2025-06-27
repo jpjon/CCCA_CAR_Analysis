@@ -7,7 +7,7 @@
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   z-index: 1000;
-  min-width: 250px;
+  min-width: 350px;
   transition: transform 0.3s ease;
 }
 
@@ -45,4 +45,36 @@
   height: 14px;
   border: 1px solid #ccc;
   border-radius: 2px;
+}
+
+.search-section {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.search-section h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+/* Override search component styles when inside year controls */
+#year-controls .search-component {
+  position: static;
+  width:92.5%;
+  max-width: none;
+}
+
+#year-controls .search-input-container {
+  width: 100%;
+}
+
+#year-controls .dropdown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 1002;
 }

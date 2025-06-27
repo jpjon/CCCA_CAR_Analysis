@@ -4,7 +4,6 @@ import MapComponent from './components/MapComponent.jsx';
 import YearToggleControls from './components/YearToggleControls.jsx';
 import Navbar from './components/Navbar.jsx';
 import Sidebar from './components/Sidebar.jsx';
-import SearchComponent from './components/SearchComponent.jsx';
 
 export default function App() {
   // Track which year comparisons are visible (year-over-year view)
@@ -157,14 +156,9 @@ export default function App() {
             <YearToggleControls 
               visibleYearComparisons={visibleYearComparisons}
               onToggleYear={toggleYear}
+              onNavigateToProperty={handleNavigateToProperty}
+              canNavigate={canNavigate}
             />
-            <div className="search-container">
-              <SearchComponent
-                onNavigateToProperty={handleNavigateToProperty}
-                visibleYearComparisons={visibleYearComparisons}
-                canNavigate={canNavigate}
-              />
-            </div>
             <div className="map-container">
               <MapComponent 
                 visibleYearComparisons={visibleYearComparisons} 

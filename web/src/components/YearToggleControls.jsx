@@ -1,9 +1,15 @@
 import React from 'react';
 import { CONFIG } from '../config/config.js';
 import { generateYearColors } from '../utils/colors.js';
+import SearchComponent from './SearchComponent.jsx';
 import '../styles/YearToggleComponent.css'; 
 
-export default function YearToggleControls({ visibleYearComparisons, onToggleYear }) {
+export default function YearToggleControls({ 
+  visibleYearComparisons, 
+  onToggleYear, 
+  onNavigateToProperty, 
+  canNavigate 
+}) {
   const yearColors = generateYearColors(CONFIG.years);
 
   return (
@@ -34,6 +40,15 @@ export default function YearToggleControls({ visibleYearComparisons, onToggleYea
           </span>
         </label>
       ))}
+      
+      <div className="search-section">
+        <h4>Search Property</h4>
+        <SearchComponent
+          onNavigateToProperty={onNavigateToProperty}
+          visibleYearComparisons={visibleYearComparisons}
+          canNavigate={canNavigate}
+        />
+      </div>
     </div>
   );
 }

@@ -1,5 +1,7 @@
 -- Enable PostGIS extension
 CREATE EXTENSION IF NOT EXISTS postgis;
+-- Enable pg_trgm extension for trigram search
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 -- Create single CAR table with year column
 CREATE TABLE IF NOT EXISTS car_data (

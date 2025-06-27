@@ -4,9 +4,6 @@
 CREATE INDEX IF NOT EXISTS idx_car_data_cod_imovel_gin 
 ON car_data USING GIN (cod_imovel gin_trgm_ops);
 
--- Enable pg_trgm extension for trigram search
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-
 -- Add trigram index for fuzzy text search
 CREATE INDEX IF NOT EXISTS idx_car_data_cod_imovel_trgm 
 ON car_data USING GIN (cod_imovel gin_trgm_ops);
