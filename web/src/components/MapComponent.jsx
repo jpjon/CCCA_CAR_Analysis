@@ -158,7 +158,7 @@ export default function MapComponent({ visibleYearComparisons, onMapReady, selec
         if (!features.length) return;
 
         const feature = features[0];
-        const { cod_imovel, state } = feature.properties;
+        const { cod_imovel, state, geodesic_distance } = feature.properties;
         console.log(feature)
         // Determine which table this came from and what actual year it represents
         const layerId = feature.layer.id;
@@ -175,6 +175,7 @@ export default function MapComponent({ visibleYearComparisons, onMapReady, selec
               <strong>Actual Year:</strong> ${actualYear}<br>
               <strong>State:</strong> ${state}<br>
               <strong>cod_imovel:</strong> ${cod_imovel}<br>
+              <strong>Distance(m):</strong> ${Math.round(geodesic_distance * 100) / 100}<br>
               <small>From table: ${tableYear}</small>
           `)
           .addTo(map.current);
