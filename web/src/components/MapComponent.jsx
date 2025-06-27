@@ -68,7 +68,8 @@ export default function MapComponent({ visibleYearComparisons, onMapReady }) {
           'source-layer': sourceId,
           paint: {
             'fill-color': yearColors[tableYear]?.before || '#999999',
-            'fill-opacity': 0.7
+            'fill-opacity': 0.7,
+            'fill-outline-color': "#000000",
           },
           layout: {
             'visibility': 'none'
@@ -84,7 +85,8 @@ export default function MapComponent({ visibleYearComparisons, onMapReady }) {
           'source-layer': sourceId,
           paint: {
             'fill-color': yearColors[tableYear]?.after || '#666666',
-            'fill-opacity': 0.7
+            'fill-opacity': 0.7,
+            'fill-outline-color': "#000000",
           },
           layout: {
             'visibility': 'none'

@@ -43,14 +43,17 @@ export default function SearchComponent({
 
   // API call for cod_imovel suggestions
   const fetchSuggestions = async (term) => {
-    if (!term || term.length < 2) {
+    if (!term || term.length < 2 || !canNavigate) {
       setSuggestions([]);
       return;
     }
 
+    // Get the selected year (there should be exactly one when canNavigate is true)
+    const selectedYear = Array.from(visibleYearComparisons)[0];
+    
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:8000/api/search/cod_imovel/${encodeURIComponent(term)}?limit=10`);
+      const response = await fetch(`http://localhost:8000/api/search/cod_imovel/${encodeURIComponent(term)}/${selectedYear}?limit=10`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

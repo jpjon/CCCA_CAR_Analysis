@@ -77,58 +77,9 @@ export default function App() {
       }
       
       // Fallback: Query the map tiles directly (original approach)
-      console.log('API lookup failed, trying map tile query...');
+      console.warn(`No geometry found for cod_imovel: ${codImovel}`);
+      alert(`Property ${codImovel} not found in the selected year.`);
       
-      // Get all features from visible layers
-      const allFeatures = mapInstance.current.querySourceFeatures(
-        `geometry_changes_${activeYear}_view.1`,
-        {
-          filter: ['==', 'cod_imovel', codImovel]
-        }
-      );
-
-      if (allFeatures.length > 0) {
-        // Get the first feature to calculate bounds
-        const feature = allFeatures[0];
-        
-        // Create bounds from the feature geometry
-        const bounds = new maplibregl.LngLatBounds();
-        
-        if (feature.geometry.type === 'Polygon') {
-          feature.geometry.coordinates[0].forEach(coord => {
-            bounds.extend(coord);
-          });
-        } else if (feature.geometry.type === 'MultiPolygon') {
-          feature.geometry.coordinates.forEach(polygon => {
-            polygon[0].forEach(coord => {
-              bounds.extend(coord);
-            });
-          });
-        } else if (feature.geometry.type === 'Point') {
-          bounds.extend(feature.geometry.coordinates);
-          // For points, add some padding around the location
-          const padding = 0.01; // roughly 1km at equator
-          bounds.extend([
-            feature.geometry.coordinates[0] - padding,
-            feature.geometry.coordinates[1] - padding
-          ]);
-          bounds.extend([
-            feature.geometry.coordinates[0] + padding,
-            feature.geometry.coordinates[1] + padding
-          ]);
-        }
-
-        // Fit the map to the feature bounds
-        mapInstance.current.fitBounds(bounds, {
-          padding: 50,
-          maxZoom: 16
-        });
-
-        console.log(`Navigated to cod_imovel: ${codImovel} using map tiles`);
-      } else {
-        console.warn(`No features found for cod_imovel: ${codImovel}`);
-        alert(`Property ${codImovel} not found in the selected year.`);
-      }
     } catch (error) {
       console.error('Error navigating to property:', error);
       alert('Error finding the property. Please try again.');

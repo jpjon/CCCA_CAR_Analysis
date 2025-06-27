@@ -92,22 +92,22 @@ async def root():
 async def health_check():
     return {"status": "healthy"}
 
-@app.get("/api/search/cod_imovel/{query}", response_model=List[CodImovelSuggestion])
-async def search_cod_imovel(query: str, limit: int = 10, db: Session = Depends(get_db)):
+@app.get("/api/search/cod_imovel/{query}/{year}", response_model=List[CodImovelSuggestion])
+async def search_cod_imovel(query: str, year: int, limit: int = 10, db: Session = Depends(get_db)):
     """
-    Search for cod_imovel suggestions based on partial match
+    Search for cod_imovel suggestions from geometry_changes view for specific year
     """
     if len(query) < 2:
         return []
     
     try:
-        # Search in car_data table with ILIKE for partial matching
+        # Search in geometry_changes_{year}_view for properties visible on the map
         results = db.execute(
-            text("""
+            text(f"""
                 SELECT DISTINCT cod_imovel, year, ind_status, ind_tipo
-                FROM car_data 
+                FROM geometry_changes_{year}_view 
                 WHERE cod_imovel ILIKE :query 
-                ORDER BY cod_imovel, year DESC
+                ORDER BY cod_imovel
                 LIMIT :limit
             """),
             {"query": f"%{query}%", "limit": limit}
