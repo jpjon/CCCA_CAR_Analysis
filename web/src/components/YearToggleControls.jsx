@@ -1,4 +1,5 @@
 import React from 'react';
+import { FaTrash } from 'react-icons/fa';
 import { CONFIG } from '../config/config.js';
 import { generateYearColors } from '../utils/colors.js';
 import SearchComponent from './SearchComponent.jsx';
@@ -8,7 +9,8 @@ export default function YearToggleControls({
   visibleYearComparisons, 
   onToggleYear, 
   onNavigateToProperty, 
-  canNavigate 
+  canNavigate,
+  onClearLines
 }) {
   const yearColors = generateYearColors(CONFIG.years);
 
@@ -40,6 +42,13 @@ export default function YearToggleControls({
           </span>
         </label>
       ))}
+      
+      <div className="clear-lines-section">
+        <button className="clear-lines-button" onClick={onClearLines}>
+          <FaTrash className="clear-lines-icon" />
+          Clear Lines
+        </button>
+      </div>
       
       <div className="search-section">
         <h4>Search Property</h4>

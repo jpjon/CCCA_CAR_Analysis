@@ -12,6 +12,9 @@ export default function App() {
   // Track sidebar open/closed state
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
+  // Track selected properties for distance lines (per year)
+  const [selectedProperties, setSelectedProperties] = useState({});
+  
   // Map instance reference
   const mapInstance = useRef(null);
 
@@ -72,6 +75,10 @@ export default function App() {
           });
 
           console.log(`Navigated to cod_imovel: ${codImovel} using API`);
+          
+          // Add property to selected properties for distance line display
+          addSelectedProperty(codImovel, activeYear);
+          
           return;
         }
       }
@@ -84,6 +91,25 @@ export default function App() {
       console.error('Error navigating to property:', error);
       alert('Error finding the property. Please try again.');
     }
+  };
+
+  // Add property to selected properties for distance line display
+  const addSelectedProperty = (codImovel, year) => {
+    setSelectedProperties(prev => {
+      const newSelected = { ...prev };
+      if (!newSelected[year]) {
+        newSelected[year] = new Set();
+      } else {
+        newSelected[year] = new Set(newSelected[year]);
+      }
+      newSelected[year].add(codImovel);
+      return newSelected;
+    });
+  };
+
+  // Clear all selected properties (for clear lines button)
+  const clearAllSelectedProperties = () => {
+    setSelectedProperties({});
   };
 
   // Check if navigation is allowed (exactly one year selected)
@@ -109,11 +135,14 @@ export default function App() {
               onToggleYear={toggleYear}
               onNavigateToProperty={handleNavigateToProperty}
               canNavigate={canNavigate}
+              onClearLines={clearAllSelectedProperties}
             />
             <div className="map-container">
               <MapComponent 
                 visibleYearComparisons={visibleYearComparisons} 
                 onMapReady={handleMapReady}
+                selectedProperties={selectedProperties}
+                onPropertyClick={addSelectedProperty}
               />
             </div>
           </div>

@@ -5,7 +5,7 @@ import '../styles/MapComponent.css';
 import { CONFIG } from '../config/config.js';
 import { generateYearColors } from '../utils/colors.js';
 
-export default function MapComponent({ visibleYearComparisons, onMapReady }) {
+export default function MapComponent({ visibleYearComparisons, onMapReady, selectedProperties, onPropertyClick }) {
   const mapContainerRef = useRef(null);
   const map = useRef(null);
   const mapLoaded = useRef(false);
@@ -92,6 +92,31 @@ export default function MapComponent({ visibleYearComparisons, onMapReady }) {
             'visibility': 'none'
           }
         });
+
+        // Add distance line source and layer for this year
+        const distanceLineSourceId = `geometry_changes_${tableYear}_view`;
+        
+        map.current.addSource(distanceLineSourceId, {
+          type: 'vector',
+          tiles: [`http://localhost:3000/geometry_changes_${tableYear}_view/{z}/{x}/{y}`]
+        });
+
+        // Add distance line layer with black dotted styling
+        map.current.addLayer({
+          id: `distance-lines-${tableYear}`,
+          type: 'line',
+          source: distanceLineSourceId,
+          'source-layer': distanceLineSourceId,
+          paint: {
+            'line-color': '#000000',
+            'line-width': 2,
+            'line-dasharray': [2, 2]
+          },
+          layout: {
+            'visibility': 'none'
+          },
+          filter: ['in', 'cod_imovel', ''] // Initially show no lines
+        });
       });
 
 
@@ -140,6 +165,11 @@ export default function MapComponent({ visibleYearComparisons, onMapReady }) {
         const tableYear = parseInt(layerId.match(/table-(\d+)-/)[1]);
         const actualYear = state === 'before' ? tableYear - 1 : tableYear;
 
+        // Add property to selected properties for distance line display
+        if (onPropertyClick) {
+          onPropertyClick(cod_imovel, tableYear);
+        }
+
         popup.setLngLat(e.lngLat)
           .setHTML(`
               <strong>Actual Year:</strong> ${actualYear}<br>
@@ -179,6 +209,34 @@ export default function MapComponent({ visibleYearComparisons, onMapReady }) {
       console.error('MapComponent: Error updating layer visibility:', error);
     }
   }, [visibleYearComparisons]);
+
+  // Update distance line visibility when selectedProperties changes
+  useEffect(() => {
+    if (!map.current || !mapLoaded.current) return;
+
+    try {
+      CONFIG.years.forEach(tableYear => {
+        const distanceLineLayerId = `distance-lines-${tableYear}`;
+        
+        if (map.current.getLayer(distanceLineLayerId)) {
+          const showYear = visibleYearComparisons.has(tableYear);
+          const selectedForYear = selectedProperties[tableYear];
+          
+          if (showYear && selectedForYear && selectedForYear.size > 0) {
+            // Show distance lines for selected properties in this year
+            const selectedArray = Array.from(selectedForYear);
+            map.current.setFilter(distanceLineLayerId, ['in', 'cod_imovel', ...selectedArray]);
+            map.current.setLayoutProperty(distanceLineLayerId, 'visibility', 'visible');
+          } else {
+            // Hide distance lines for this year
+            map.current.setLayoutProperty(distanceLineLayerId, 'visibility', 'none');
+          }
+        }
+      });
+    } catch (error) {
+      console.error('MapComponent: Error updating distance line visibility:', error);
+    }
+  }, [visibleYearComparisons, selectedProperties]);
 
   console.log('MapComponent: Rendering map container');
 

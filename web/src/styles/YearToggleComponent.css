@@ -47,6 +47,42 @@
   border-radius: 2px;
 }
 
+.clear-lines-section {
+  margin-top: 150x;
+  padding-top: 14px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: center;
+}
+
+.clear-lines-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background-color: #3b3939;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.clear-lines-button:hover {
+  background-color: #c0392b;
+  transform: translateY(-2px);
+}
+
+.clear-lines-button:active {
+  transform: translateY(0);
+}
+
+.clear-lines-icon {
+  font-size: 14px;
+}
+
 .search-section {
   margin-top: 20px;
   padding-top: 15px;
