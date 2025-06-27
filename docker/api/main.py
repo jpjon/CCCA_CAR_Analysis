@@ -93,7 +93,7 @@ async def health_check():
     return {"status": "healthy"}
 
 @app.get("/api/search/cod_imovel/{query}/{year}", response_model=List[CodImovelSuggestion])
-async def search_cod_imovel(query: str, year: int, limit: int = 10, db: Session = Depends(get_db)):
+async def search_cod_imovel(query: str, year: int, limit: int = 5, db: Session = Depends(get_db)):
     """
     Search for cod_imovel suggestions from geometry_changes view for specific year
     """
