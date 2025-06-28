@@ -30,7 +30,6 @@ Raw Data → Ingestion → Database Loading → Spatial Analysis → Visualizati
 - **Content**: Deforestation polygons with detection dates
 - **Coordinate System**: Geographic coordinates (EPSG:4674 - SIRGAS 2000)
 - **Coverage**: Amazon biome region
-- **Update Frequency**: Annual
 
 ## Data Structure Requirements
 
@@ -48,7 +47,7 @@ data/
 │   ├── 2024/                           # Historical year data
 │   │   ├── merged_car_2024_02_01_UTF8.shp
 │   │   └── ...                         # Other shapefile components
-│   └── 2025/                           # Latest year (state-based structure)
+│   └── 2025/                           # Latest year
 │       ├── AC/                         # Acre state
 │       │   ├── AREA_IMOVEL_1.shp
 │       │   ├── AREA_IMOVEL_1.dbf
@@ -66,14 +65,13 @@ data/
 ### Key Structure Notes
 
 1. **Historical Years**: Merged shapefiles for entire Amazon region
-2. **Latest Year**: State-based folders with individual shapefiles
+2. **Latest Year**: State-based folders with individual shapefiles due to API file format from API
 3. **File Naming**: Consistent naming conventions expected
-4. **Completeness**: All shapefile components (.shp, .dbf, .prj, .shx) required
 
 ## Stage 1: Data Ingestion
 
 ### Overview
-Data ingestion downloads and prepares raw data for processing.
+Data ingestion downloads and preprocesses raw data.
 
 **Command:**
 ```bash
@@ -90,55 +88,32 @@ make ingest-data LATEST_YEAR=2025
 3. Checks data completeness and quality
 4. Stores in `data/PRODES/` directory
 
-**Data Validation:**
-- Geometry validity checks
-- Coordinate system verification
-- Temporal data validation
-- Spatial extent validation (Amazon region)
-
 ### SICAR Data Ingestion
 
 **Script:** `src/ingestion/sicar.py`
 
 **Process:**
-1. Downloads CAR data from SICAR API/servers
-2. Organizes data by year and state (for latest year)
+1. Downloads latest year CAR data from SICAR API/servers
+2. API downlaods data by state, script organizes data state in appropriate folder structure
 3. Validates shapefile components
 4. Performs initial quality checks
 
 **Environment Variables:**
 - `LATEST_YEAR`: Specifies which year uses state-based structure
 
-**Data Quality Checks:**
-- Shapefile component completeness
-- Geometry validation
-- Attribute table integrity
-- Coordinate system consistency
-
 ### Manual Data Preparation
 
-If automatic ingestion fails, you can manually prepare data:
+The SICAR API does not allow you to download data for previous years.
 
-1. **Download Data Sources:**
-   - SICAR: Access through official SICAR portal
-   - PRODES: Download from INPE TerraBrasilis
+For all other years than the latest CAR data, you can manually prepare data:
 
-2. **Organize Files:**
+1. **Input and organize Files:**
    ```bash
    # Create directory structure
-   mkdir -p data/SICAR/2025/{AC,AM,AP,MA,MT,PA,RO,RR,TO}
+   mkdir -p data/SICAR/2024/
    mkdir -p data/PRODES
    
    # Place files according to expected structure
-   ```
-
-3. **Validate Data:**
-   ```bash
-   # Check shapefile integrity
-   ogrinfo data/SICAR/2025/AC/AREA_IMOVEL_1.shp
-   
-   # Check coordinate system
-   gdalsrsinfo data/SICAR/2025/AC/AREA_IMOVEL_1.shp
    ```
 
 ## Stage 2: Database Loading
@@ -208,58 +183,7 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE INDEX idx_car_data_cod_imovel_trgm ON car_data USING GIN (cod_imovel gin_trgm_ops);
 ```
 
-### Data Standardization
-
-#### Coordinate System Normalization
-- All data transformed to EPSG:4674 (SIRGAS 2000)
-- Geometry validation and repair
-- Topology cleaning for complex polygons
-
-#### Attribute Standardization
-```python
-# Example standardization for CAR data
-def standardize_car_attributes(df):
-    """Standardize CAR data attributes across years"""
-    
-    # Standardize column names
-    column_mapping = {
-        'cod_imovel': 'cod_imovel',
-        'ind_status': 'ind_status', 
-        'ind_tipo': 'ind_tipo',
-        'num_area': 'area_ha'
-    }
-    
-    # Handle missing columns
-    for col in required_columns:
-        if col not in df.columns:
-            df[col] = None
-    
-    return df
-```
-
 ### Loading Performance Optimization
-
-#### Bulk Loading Strategy
-```python
-# Use COPY for large datasets
-def bulk_load_car_data(connection, df, table_name):
-    """Efficiently load large datasets using PostgreSQL COPY"""
-    
-    # Prepare data for COPY
-    df_copy = df.copy()
-    df_copy['geometry'] = df_copy.geometry.apply(lambda x: x.wkt)
-    
-    # Use COPY command for bulk insert
-    connection.execute(f"""
-        COPY {table_name} (cod_imovel, year, ind_status, geometry)
-        FROM STDIN WITH CSV HEADER
-    """, df_copy.to_csv(index=False))
-```
-
-#### Memory Management
-- Process data in chunks for large files
-- Use streaming reads for massive datasets
-- Monitor memory usage during loading
 
 ## Stage 3: Spatial Analysis
 
@@ -401,7 +325,5 @@ sources:
       tables: true
       views: true
 ```
-
-
 
 This data pipeline guide provides comprehensive information for understanding and managing the CCCA CAR Analysis Platform's data processing workflow. For technical details about the system architecture, see the [Architecture Documentation](architecture.md).

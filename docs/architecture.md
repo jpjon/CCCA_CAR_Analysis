@@ -7,13 +7,13 @@ The CCCA CAR Analysis application is a modern geospatial analysis platform desig
 ## System Architecture Diagram
 
 ```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   React Frontend │    │   FastAPI Backend │    │ PostgreSQL/PostGIS │
-│   (Port 5173)    │◄──►│   (Port 8000)     │◄──►│   (Port 5432)     │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-         │                        │                        │
-         │              ┌─────────▼─────────┐              │
-         │              │  Martin Tile Server │              │
-         └──────────────►│   (Port 3000)      │◄─────────────┘
-                        └───────────────────┘
+┌───────────────────┐       ┌────────────────┐      ┌───────────────────┐
+│   React Frontend  │       │ FastAPI Backend│      │ PostgreSQL/PostGIS│
+│   (Port 5173)     │◄─────►│  (Port 8000)   │◄────►│   (Port 5432)     │
+└───────────────────┘       └────────────────┘      └───────────────────┘
+         │                            │                        │
+         │               ┌────────────▼─────────┐              │
+         │               │  Martin Tile Server  │              │
+         └───────────── ►│   (Port 3000)        │◄─────────────┘
+                         └──────────────────────┘
 ```
