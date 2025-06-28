@@ -121,7 +121,7 @@ export default function App() {
         <Sidebar isOpen={sidebarOpen} onClose={closeSidebar}>
           <div className="sidebar-placeholder">
             <h3>Sidebar Content</h3>
-            <p>Placeholder for more controls, such as filtering by State</p>
+            <p>Placeholder for data visualization</p>
           </div>
         </Sidebar>
         <div className="main-layout">

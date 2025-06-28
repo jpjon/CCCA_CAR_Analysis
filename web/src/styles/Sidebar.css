@@ -45,16 +45,15 @@
   flex: 1;
   padding: 20px;
   overflow-y: auto;
-  white-space: nowrap;
 }
 
 .sidebar-placeholder h3 {
-  color: white;
+  color: rgb(0, 0, 0);
   margin-top: 0;
   margin-bottom: 20px;
   font-size: 18px;
 }
 
 .sidebar-placeholder p {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(0, 0, 0, 0.8);
 }
