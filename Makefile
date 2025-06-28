@@ -1,7 +1,7 @@
 .PHONY: start stop load-data analyze run-all setup clean web logs psql
 
 # Configuration variables
-YEARS ?= 2023,2024,2025
+YEARS ?= 2020,2021,2023,2024,2025
 LATEST_YEAR ?= 2025
 
 # Start all services
@@ -10,6 +10,7 @@ start:
 	@echo "Services started!"
 	@echo "PostGIS: localhost:5432"
 	@echo "Martin: localhost:3000"
+	@echo "FastAPI: localhost:8000"
 
 # Stop all services
 stop:
@@ -18,7 +19,7 @@ stop:
 # Ingest CAR and PRODES data
 ingest-data:
 	python src/ingestion/prodes.py
-	LATEST_YEAR=$(LATEST_YEAR) python src/ingestion/sicar.py
+	python src/ingestion/sicar.py $(LATEST_YEAR)
 
 # Load CAR and PRODES data into PostGIS
 load-data:

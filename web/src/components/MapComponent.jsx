@@ -86,7 +86,7 @@ export default function MapComponent({ visibleYearComparisons, onMapReady, selec
           paint: {
             'fill-color': yearColors[tableYear]?.after || '#666666',
             'fill-opacity': 0.7,
-            'fill-outline-color': "#000000",
+            'fill-outline-color': "#FFFFFF",
           },
           layout: {
             'visibility': 'none'

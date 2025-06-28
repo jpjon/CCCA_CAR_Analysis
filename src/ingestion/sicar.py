@@ -96,23 +96,26 @@ if __name__ == "__main__":
     os.makedirs(DATA_DIR, exist_ok=True)
     os.makedirs(SICAR_DIR, exist_ok=True)
 
-    # Ask user if they want to download SICAR data
-    user_input = input("Do you want to ingest the latest year available SICAR data? (yes/no): ").strip().lower()
+    # Keep prompting until valid input is received
+    while True:
+        user_input = input("Do you want to ingest the latest year available SICAR data? (yes/no): ").strip().lower()
 
-    if user_input == "yes":
-        # Get the year from the command-line arguments
-        if len(sys.argv) < 2:
-            print("Error: Missing year argument. Usage: python ingest_latest_car_data.py <year>. Please update Makefile to include the latest year.")
-            sys.exit(1)
+        if user_input == "yes":
+            # Get the year from the command-line arguments
+            if len(sys.argv) < 2:
+                print("Error: Missing year argument. Usage: python ingest_latest_car_data.py <year>. Please update Makefile to include the latest year.")
+                sys.exit(1)
 
-        LATEST_YEAR = sys.argv[1]
+            LATEST_YEAR = sys.argv[1]
 
-        # List of states in the Legal Amazon region
-        amazon_states = ['AC', 'AM', 'PA', 'RO', 'RR', 'AP', 'MA', 'MT', 'TO']
+            # List of states in the Legal Amazon region
+            amazon_states = ['AC', 'AM', 'PA', 'RO', 'RR', 'AP', 'MA', 'MT', 'TO']
 
-        # Download SICAR datasets for each state
-        download_sicar_data(amazon_states, LATEST_YEAR)
-    elif user_input == "no":
-        print("Skipping SICAR data ingestion.")
-    else:
-        print("Invalid input. Please enter 'yes' or 'no'.")
+            # Download SICAR datasets for each state
+            download_sicar_data(amazon_states, LATEST_YEAR)
+            break
+        elif user_input == "no":
+            print("Skipping SICAR data ingestion.")
+            break
+        else:
+            print("Invalid input. Please enter 'yes' or 'no'.")
