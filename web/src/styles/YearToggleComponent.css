@@ -12,7 +12,7 @@
 }
 
 .sidebar-open #year-controls {
-  transform: translateX(300px);
+  transform: translateX(350px);
 }
 
 #year-controls h3 {

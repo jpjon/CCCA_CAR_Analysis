@@ -18,7 +18,7 @@ stop:
 # Ingest CAR and PRODES data
 ingest-data:
 	python src/ingestion/prodes.py
-	python src/ingestion/sicar.py
+	LATEST_YEAR=$(LATEST_YEAR) python src/ingestion/sicar.py
 
 # Load CAR and PRODES data into PostGIS
 load-data:
@@ -31,12 +31,25 @@ analyze:
 	@echo "Running analysis for years: $(YEARS)"
 	python src/processing/run_car_analysis.py --years $(YEARS)
 
-# Run full pipeline (ingest, load + analyze, deploy)
-run-all: ingest-data load-data analyze
+# Run full pipeline (ingest, load + analyze, deploy on dev)
+run-all: ingest-data load-data analyze web-dev
+
+# Install web dependencies
+web-install:
+	cd web && npm install
+
+# Run web development server
+web-dev:
+	cd web && npm run dev
+
+# Build web for production
+web-build:
+	cd web && npm run build
 
 # Initial setup
 setup:
 	pip install -r requirements.txt
+	make web-install
 	make start
 	sleep 5  # Wait for PostGIS to be ready
 
@@ -53,11 +66,6 @@ logs:
 psql:
 	docker exec -it geoanalytics_db psql -U postgres -d geoanalytics
 
-# Serve web interface
-web:
-	@echo "const CONFIG = { years: [$(shell echo $(YEARS) | cut -d',' -f2- | sed 's/,/,/g')] };" > web/config.js
-	cd web && python3 -m http.server 8080 --bind 127.0.0.1
-
 # Help
 help:
 	@echo "Available targets:"
@@ -66,6 +74,8 @@ help:
 	@echo "  make load-data      - Load CAR and PRODES data (default years: $(YEARS))"
 	@echo "  make analyze        - Run analysis on loaded data"
 	@echo "  make run-all        - Load data and run analysis"
+	@echo "  make web-install    - Install web dependencies"
+	@echo "  make web-dev        - Run web development server"
 	@echo "  make clean          - Remove all data and containers"
 	@echo "  make psql           - Access PostgreSQL CLI"
 	@echo ""

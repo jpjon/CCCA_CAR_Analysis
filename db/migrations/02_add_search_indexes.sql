@@ -1,4 +1,4 @@
--- Add text search indexes for cod_imovel search functionality
+-- Add text search indexes for cod_imovel search functionality for frontend
 
 -- GIN index for fast prefix matching on cod_imovel
 CREATE INDEX IF NOT EXISTS idx_car_data_cod_imovel_gin 
