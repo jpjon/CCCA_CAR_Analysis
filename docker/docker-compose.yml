@@ -1,0 +1,69 @@
+services:
+  postgis:
+    image: postgis/postgis:17-3.5
+    container_name: geoanalytics_db
+    environment:
+      POSTGRES_DB: geoanalytics
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+      - ../db/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db-init:
+    image: postgres:17
+    depends_on:
+      postgis:
+        condition: service_healthy
+    entrypoint: >
+      bash -c "
+        echo 'Waiting for geometry_changes_view for year ${LATEST_YEAR}...';
+        until psql postgresql://postgres:postgres@postgis:5432/geoanalytics -U postgres -tAc \"
+          SELECT 1 FROM information_schema.views
+          WHERE table_name = 'geometry_changes_${LATEST_YEAR}_view'
+        \" | grep -q 1; do
+          echo 'Still waiting...';
+          sleep 3;
+        done
+        echo 'View geometry_changes_${LATEST_YEAR}_view is ready!';
+      "
+    environment:
+      - LATEST_YEAR
+
+  api:
+    build: 
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: geoanalytics_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgis:5432/geoanalytics
+    depends_on:
+      postgis:
+        condition: service_healthy
+    volumes:
+      - ./api:/app
+
+  martin:
+    image: ghcr.io/maplibre/martin:latest
+    container_name: geoanalytics_tiles
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgis:5432/geoanalytics
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./martin/config.yaml:/config.yaml
+    command: ["--config", "/config.yaml"]

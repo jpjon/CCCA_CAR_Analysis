@@ -1,0 +1,41 @@
+/* index.css or global CSS */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+}
+
+.app {
+  height: 100vh;
+  width: 100vw;
+}
+
+.app-container {
+  height: 100%;
+  display: flex;
+  transition: all 0.3s ease;
+}
+
+.main-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.content-area {
+  flex: 1;
+  display: flex;
+  margin-top: 60px; /* Height of navbar */
+  height: calc(100vh - 60px);
+}
+
+.map-container {
+  flex: 1;
+  position: relative;
+}

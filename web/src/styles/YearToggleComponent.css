@@ -1,0 +1,116 @@
+#year-controls {
+  position: absolute;
+  top: 80px;
+  left: 10px;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 1000;
+  min-width: 350px;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-open #year-controls {
+  transform: translateX(350px);
+}
+
+#year-controls h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 16px;
+  color: #2c3e50;
+}
+
+.year-toggle {
+  display: flex;
+  align-items: center;
+  margin: 8px 0;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.year-toggle input[type="checkbox"] {
+  margin-right: 10px;
+}
+
+.year-toggle span {
+  display: flex;
+  align-items: center;
+}
+
+.color-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+}
+
+.clear-lines-section {
+  margin-top: 150x;
+  padding-top: 14px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: center;
+}
+
+.clear-lines-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background-color: #3b3939;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.clear-lines-button:hover {
+  background-color: #c0392b;
+  transform: translateY(-2px);
+}
+
+.clear-lines-button:active {
+  transform: translateY(0);
+}
+
+.clear-lines-icon {
+  font-size: 14px;
+}
+
+.search-section {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.search-section h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+/* Override search component styles when inside year controls */
+#year-controls .search-component {
+  position: static;
+  width:92.5%;
+  max-width: none;
+}
+
+#year-controls .search-input-container {
+  width: 100%;
+}
+
+#year-controls .dropdown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 1002;
+}

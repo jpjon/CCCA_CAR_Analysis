@@ -1,0 +1,3 @@
+# Martin configuration for CAR analysis
+postgres:
+  connection_string: ${DATABASE_URL}

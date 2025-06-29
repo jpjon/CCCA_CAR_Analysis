@@ -1,0 +1,151 @@
+.search-component {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+}
+
+.search-form {
+  width: 100%;
+}
+
+.search-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  padding: 0 12px;
+  transition: border-color 0.2s ease;
+}
+
+.search-input-container:focus-within {
+  border-color: #005747;
+}
+
+.search-icon {
+  color: #666;
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 12px 0;
+  font-size: 14px;
+  background: transparent;
+}
+
+.search-input.disabled {
+  color: #999;
+  cursor: not-allowed;
+}
+
+.search-input::placeholder {
+  color: #999;
+  font-size: 13px;
+}
+
+.history-icon {
+  color: #666;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: 8px;
+  transition: color 0.2s ease;
+}
+
+.history-icon:hover {
+  color: #005747;
+}
+
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1001;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
+.dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #eee;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.clear-history {
+  cursor: pointer;
+  color: #999;
+  font-size: 12px;
+  transition: color 0.2s ease;
+}
+
+.clear-history:hover {
+  color: #dc3545;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f9fa;
+}
+
+.dropdown-item.loading {
+  color: #666;
+  cursor: default;
+  font-style: italic;
+}
+
+.item-icon {
+  margin-right: 10px;
+  font-size: 12px;
+  color: #666;
+}
+
+.suggestions-dropdown .item-icon {
+  color: #005747;
+}
+
+.history-dropdown .item-icon {
+  color: #666;
+}
+
+/* Position search component in the layout */
+.search-container {
+  position: absolute;
+  top: 80px;
+  right: 20px;
+  z-index: 1000;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-open .search-container {
+  transform: translateX(-300px);
+}

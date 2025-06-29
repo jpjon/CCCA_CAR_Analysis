@@ -1,207 +1,177 @@
-# CCCA – Client-Facing Pipeline
+# CCCA CAR Analysis Platform
 
-A fully automated pipeline for analyzing changes in rural property boundaries (CARs) and their relationship to deforestation alerts (PRODES) in Brazil. The workflow is user-friendly and reproducible, requiring minimal manual intervention. All major steps are orchestrated by a single shell script (`run_pipeline.sh`), which guides the user through data selection, ingestion, processing, and visualization.
+A modern geospatial analysis platform for tracking changes in Brazilian CAR (Cadastro Ambiental Rural) property boundaries over time and their relationship to PRODES deforestation data. Built with Docker microservices architecture for scalable spatial analysis and interactive visualization.
 
----
+![System Architecture](docs/architecture-diagram.png)
 
-![Map Preview](images/example.png)
+## 🚀 Quick Start
 
-## 📋 Table of Contents
+### Prerequisites
 
-1. [Prerequisites](#1-prerequisites)
-2. [Setup Instructions](#2-setup-instructions)
-    - [Install Python, pip, and virtualenv](#21-install-python-pip-and-virtualenv)
-    - [Clone the Repository](#22-clone-the-repository)
-    - [Set Up a Virtual Environment](#23-set-up-a-virtual-environment)
-    - [Install Dependencies](#24-install-dependencies)
-    - [Install Tesseract OCR](#25-install-tesseract-ocr)
-3. [SICAR Data Folder Structure & Assumptions](#3-sicar-data-folder-structure--assumptions)
-4. [Using Your Own Data](#4-using-your-own-data)
-5. [Running the Pipeline](#5-running-the-pipeline)
-6. [Workflow Overview](#6-workflow-overview)
-7. [Key Files](#7-key-files)
-8. [Output](#8-output)
-9. [Notes & Known Challenges](#9-notes--known-challenges)
-10. [To Install a New Python Package](#-to-install-a-new-python-package)
+- **Docker & Docker Compose** (required)
+- **npm** (for web development)
+- **Git** (for repository management)
 
----
-
-## 1. Prerequisites
-
-- Python 3.10+
-- pip
-- virtualenv
-
----
-
-## 2. Setup Instructions
-
-### 2.1. Install Python, pip, and virtualenv
-
-On Ubuntu/Debian:
+### 1. Clone and Setup
 
 ```bash
-sudo apt install python3 python3-pip virtualenv
-```
-
-### 2.2. Clone the Repository
-
-```bash
-git clone <repo_url>
+git clone <repository-url>
 cd CCCA_CAR_Analysis
-git checkout -b <branch_name>
+
+# Install dependencies and start services
+make setup
 ```
 
-### 2.3. Set Up a Virtual Environment
+### 2. Load Data and Run Analysis
 
 ```bash
-python3 -m venv myenv
-source myenv/bin/activate
+# Ingest CAR and PRODES data
+make ingest-data
+
+# Load data into PostGIS and run analysis
+make load-data analyze
+
+# Or run the full pipeline
+make run-all
 ```
 
-### 2.4. Install Dependencies
+### 3. Start Web Interface
 
 ```bash
-pip install -r requirements.txt
+# Start development web server
+make web
+
+# Web interface available at http://localhost:5173
 ```
 
-### 2.5. Install Tesseract OCR
+## 🏗️ System Architecture
 
-Some scripts require [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) for text extraction.  
-You must install both the Python package and the system dependency:
+The platform consists of four main services:
+
+- **PostgreSQL/PostGIS** (`:5432`) - Spatial database for CAR and PRODES data
+- **FastAPI Backend** (`:8000`) - RESTful API for data access and search
+- **Martin Tile Server** (`:3000`) - High-performance vector tile serving
+- **React Frontend** (`:5173`) - Interactive web interface with search and visualization
+
+## 📊 Key Features
+
+- **Temporal Analysis**: Compare CAR boundaries across multiple years
+- **Spatial Search**: Trigram-based fuzzy search for property codes
+- **Interactive Maps**: MapLibre GL-based visualization with vector tiles
+- **Change Detection**: Identify geometry changes and PRODES intersections
+- **Performance Optimized**: Spatial indexing and async operations
+
+## 🔧 Common Commands
 
 ```bash
-pip install pytesseract
+# Service Management
+make start           # Start all Docker services
+make stop            # Stop all services
+make logs            # View service logs
+
+# Data Pipeline
+make ingest-data     # Download/ingest raw data
+make load-data       # Load data into PostGIS
+make analyze         # Run spatial analysis
+make run-all         # Complete pipeline
+
+# Web Development
+make web-install     # Install npm dependencies
+make web-dev         # Start development server
+make web-build       # Build for production
+
+# Database Access
+make psql            # Access PostgreSQL CLI
+make clean           # Remove all data and containers
 ```
 
-On Ubuntu/Debian, also run:
+## 📁 Project Structure
+
+```
+├── src/                 # Python source code
+│   ├── ingestion/       # Data ingestion scripts
+│   └── processing/      # Analysis and database loading
+├── web/                 # React frontend application
+├── docker/              # Docker configuration
+├── docs/                # Detailed documentation
+├── db/                  # Database migrations and SQL
+├── data/                # Raw data storage
+└── Makefile            # Automation commands
+```
+
+## 🗂️ Data Requirements
+
+Place your data in the following structure:
+
+```
+data/
+├── SICAR/
+│   ├── 2023/           # CAR data for 2023
+│   ├── 2024/           # CAR data for 2024
+│   └── 2025/           # Latest year with state folders
+│       ├── AC/         # Acre state data
+│       ├── AM/         # Amazonas state data
+│       └── ...
+└── PRODES/
+    └── prodes_amazonia_nb.gpkg  # PRODES deforestation data
+```
+
+## 📚 Documentation
+
+- [**Installation Guide**](docs/installation.md) - Detailed setup and system requirements
+- [**Development Guide**](docs/development.md) - Development environment and workflow  
+- [**Architecture Overview**](docs/architecture.md) - Technical system architecture
+- [**Data Pipeline**](docs/data-pipeline.md) - Data ingestion and processing workflow
+- [**Makefile Reference**](docs/makefile-reference.md) - Complete command reference
+
+## 🔍 Search Functionality
+
+The platform includes advanced search capabilities:
+
+- **Property Code Search**: Fuzzy search using PostgreSQL trigrams
+- **Spatial Navigation**: Navigate to properties with geometry bounds
+- **Year Comparison**: Toggle between different years for temporal analysis
+- **Real-time Suggestions**: Debounced search with instant suggestions
+
+## 🌍 Geographic Data
+
+- **Coordinate System**: SIRGAS 2000 (EPSG:4674)
+- **Coverage**: Amazon region of Brazil
+- **Data Sources**: SICAR (CAR registry), PRODES (deforestation alerts)
+- **Spatial Operations**: PostGIS-powered geometric analysis
+
+## 🚧 Development
 
 ```bash
-sudo apt-get install tesseract-ocr
+# Start development environment
+make setup
+
+# Run web development server with hot reload
+make web-dev
+
+# Access database for debugging
+make psql
+
+# View all service logs
+make logs
 ```
 
-For other operating systems, see the [Tesseract installation instructions](https://github.com/tesseract-ocr/tesseract).
+## 📈 Performance Features
+
+- **Vector Tiles**: Efficient map rendering with Martin tile server
+- **Spatial Indexing**: GIST indexes for fast geometric queries
+- **Connection Pooling**: Optimized database connections
+- **Async Operations**: Non-blocking FastAPI endpoints
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Set up development environment with `make setup`
+4. Make your changes
+5. Test with `make run-all`
+6. Submit a pull request
 
 ---
 
-## 3. SICAR Data Folder Structure & Assumptions
-
-- **For 2024 and prior years:**  
-  It is assumed that you will provide your own SICAR (CAR) data and place it in the appropriate folder:  
-  `data/SICAR/<year>/`  
-  For example, for 2022, place your CAR shapefiles or GeoPackages in `data/SICAR/2022/`.
-
-- **For the latest year (e.g., 2025):**  
-  The pipeline uses the SICAR API to download the most recent data.  
-  **Important:** The downloaded data will be organized by state, so the folder structure must be:  
-  `data/SICAR/2025/<state>/`  
-  Each state subdirectory should contain the shapefiles for that state.  
-  This structure is required for the pipeline to correctly process the latest year.
-
----
-
-## 4. Using Your Own Data
-
-You can manually upload your own datasets for analysis:
-
-- **PRODES Data:**  
-  Place your own PRODES deforestation data (as a GeoJSON, Shapefile, or GeoPackage) in the `data/PRODES/` folder.  
-  If you use a different filename or format, adjust the ingestion scripts or rename your file to match the expected input.
-
-- **SICAR (CAR) Data:**  
-  Place your own SICAR (CAR) data for any year in the corresponding folder:  
-  `data/SICAR/<year>/`  
-  For example, if you have CAR data for 2022, put it in `data/SICAR/2022/`.  
-  The folder should contain the shapefile or GeoPackage for that year.
-
-  For the **latest year** (e.g., 2025), the folder must be structured as:  
-  `data/SICAR/2025/<state>/`  
-  with each state subdirectory containing the relevant shapefiles.
-
-When you run the pipeline, it will automatically detect and use any data you have placed in these folders, as long as the folder structure and file formats are correct.
-
----
-
-## 5. Running the Pipeline
-
-To run the entire workflow, use:
-
-```bash
-bash run_pipeline.sh
-```
-
-This command will guide you through the full workflow, from data download to interactive map visualization.
-
----
-
-## 6. Workflow Overview
-
-When you run `bash run_pipeline.sh`, the following steps occur:
-
-1. **User Input:**  
-   - You are prompted to enter two years for analysis (e.g., 2024 and 2025).
-
-2. **Data Checks & Download:**  
-   - The script checks for the existence of SICAR data folders for the selected years and the latest available year.
-   - If missing, it downloads and unzips the required SICAR and PRODES datasets, or prompts you to add your own data.
-
-3. **Data Processing:**  
-   - The main Python script (`data_processing/data_processing.py`) is run with the selected years as arguments.
-   - This script:
-     - Standardizes and merges CAR data for the selected years.
-     - Filters for valid rural properties.
-     - Intersects CARs with PRODES deforestation polygons.
-     - Identifies parcels whose boundaries changed and no longer intersect PRODES.
-     - Calculates geodesic distances between old and new boundaries.
-     - Exports results as GeoJSON files.
-
-4. **Webmap Preparation:**  
-   - The latest output GeoJSON files are copied to `webmap/data/`.
-   - A `config.json` file is generated in `webmap/data/` to record which years were analyzed.
-
-5. **Visualization:**  
-   - The Leaflet web map (`webmap/CCCA-webmap.html`) is ready to use. It automatically loads the correct data and years for interactive exploration, search, and inspection.
-
----
-
-## 7. Key Files
-
-| File/Folder | Description |
-|-------------|-------------|
-| `run_pipeline.sh` | Main shell script that automates the entire workflow: prompts, downloads, processing, and export. |
-| `data_ingestion/ingest_latest_car_data.py` | Downloads and processes SICAR (CAR) shapefiles for each year. |
-| `data_ingestion/ingest_prodes_data.py` | Downloads the latest PRODES deforestation data. |
-| `data_processing/data_processing.py` | Cleans, standardizes, and analyzes CAR and PRODES data; exports results. |
-| `data_processing/standardize_data.py` | Helper functions for harmonizing CAR data columns and geometry. |
-| `webmap/CCCA-webmap.html` | Interactive Leaflet map for exploring results. Loads data/config automatically. |
-| `webmap/data/` | Contains the latest GeoJSON outputs and `config.json` for the web map. |
-
----
-
-## 8. Output
-
-After running the pipeline, you will find:
-
-- GeoJSON files for each geometry type in `webmap/data/` (e.g., `geometry_2024.geojson`, `geometry_2025.geojson`, `geometry_prodes.geojson`, `distance_lines.geojson`)
-- A `config.json` file in `webmap/data/` specifying the years analyzed
-- An interactive web map at `webmap/CCCA-webmap.html` for exploring and searching the results
-
----
-
-## 9. Notes & Known Challenges
-
-- **Column name mismatches** across years are handled automatically during preprocessing.
-- **CRS is kept as EPSG:4674** (geographic) for geodesic distance calculations.
-- **Performance:** For very large datasets, some spatial operations may take several minutes.
-- **Webmap:** Always loads the most recent analysis results; no manual editing required.
-
----
-
-## ✅ To Install a New Python Package
-
-```bash
-pip install <package_name>
-pip freeze > requirements.txt
-```
-
----
+For a system design diagram, see the [System Architecture documentation](docs/architecture.md).
