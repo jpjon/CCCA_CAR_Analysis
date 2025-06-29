@@ -83,7 +83,7 @@ export default function App() {
         }
       }
       
-      // Fallback: Query the map tiles directly (original approach)
+      // If not found in database via API
       console.warn(`No geometry found for cod_imovel: ${codImovel}`);
       alert(`Property ${codImovel} not found in the selected year.`);
       
@@ -118,12 +118,10 @@ export default function App() {
   return (
     <div className="app">
       <div className={`app-container ${sidebarOpen ? 'sidebar-open' : ''}`}>
-        <Sidebar isOpen={sidebarOpen} onClose={closeSidebar}>
-          <div className="sidebar-placeholder">
-            <h3>Sidebar Content</h3>
-            <p>Placeholder for data visualization</p>
-          </div>
-        </Sidebar>
+        <Sidebar 
+          isOpen={sidebarOpen} 
+          onClose={closeSidebar}
+        />
         <div className="main-layout">
           <Navbar 
             onToggleSidebar={toggleSidebar}

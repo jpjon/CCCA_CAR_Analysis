@@ -174,4 +174,4 @@ make logs
 
 ---
 
-For detailed technical information, see the [System Architecture documentation](docs/architecture.md).
+For a system design diagram, see the [System Architecture documentation](docs/architecture.md).

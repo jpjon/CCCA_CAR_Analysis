@@ -47,13 +47,9 @@
   overflow-y: auto;
 }
 
-.sidebar-placeholder h3 {
-  color: rgb(0, 0, 0);
-  margin-top: 0;
+.sidebar-logo {
+  width: 120px;
+  height: auto;
   margin-bottom: 20px;
-  font-size: 18px;
 }
 
-.sidebar-placeholder p {
-  color: rgba(0, 0, 0, 0.8);
-}

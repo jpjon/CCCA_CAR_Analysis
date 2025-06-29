@@ -128,7 +128,7 @@ export default function MapComponent({ visibleYearComparisons, onMapReady, selec
         'source-layer': 'relevant_prodes_subdivided',
         paint: {
           'fill-color': '#6E260E',
-          'fill-opacity': 0.5,
+          'fill-opacity': 0.8,
           'fill-outline-color': 'transparent'
         }
       });

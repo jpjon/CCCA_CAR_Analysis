@@ -17,17 +17,23 @@ Required for web frontend development.
 
 https://docs.npmjs.com/downloading-and-installing-node-js-and-npm
 
-### Optional Dependencies
 
 #### Tesseract OCR
 Required only if processing scanned documents or image-based data.
 
-https://docs.npmjs.com/downloading-and-installing-node-js-and-npm
+https://tesseract-ocr.github.io/tessdoc/Installation.html
 
 
 ## Installation Steps
 
-### 3. Initial Setup
+### 1. Clone Repository
+
+```bash
+git clone <repository-url>
+cd CCCA_CAR_Analysis
+```
+
+### 2. Initial Setup
 
 ```bash
 # Install all dependencies and start services
@@ -44,7 +50,7 @@ Expected services:
 - PostgreSQL/PostGIS: `localhost:5432`
 - FastAPI backend: `localhost:8000`
 - Martin tile server: `localhost:3000`
-- Web frontend: `localhost:5173` (when running `make web`)
+- Web frontend: `localhost:3001` (when running `make web`)
 
 
 ## Data Preparation
@@ -85,6 +91,4 @@ Or manually place data files in the appropriate directories following the struct
 
 After successful installation:
 
-1. **Load Data**: Follow the [Data Pipeline Guide](data-pipeline.md)
-2. **Development**: See the [Development Guide](development.md)
-3. **Commands**: Reference the [Makefile Documentation](makefile-reference.md)
+**Load Data**: Follow the [Data Pipeline Guide](data-pipeline.md)

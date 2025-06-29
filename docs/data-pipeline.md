@@ -83,7 +83,7 @@ make ingest-data LATEST_YEAR=2025
 **Script:** `src/ingestion/prodes.py`
 
 **Process:**
-1. Downloads PRODES data from INPE servers
+1. Downloads PRODES data API
 2. Validates coordinate system (EPSG:4674)
 3. Checks data completeness and quality
 4. Stores in `data/PRODES/` directory
@@ -107,19 +107,18 @@ The SICAR API does not allow you to download data for previous years.
 
 For all other years than the latest CAR data, you can manually prepare data:
 
-1. **Input and organize Files:**
-   ```bash
-   # Create directory structure
-   mkdir -p data/SICAR/2024/
-   mkdir -p data/PRODES
-   
-   # Place files according to expected structure
-   ```
+```bash
+# Create directory structure
+mkdir -p data/SICAR/2024/
+mkdir -p data/PRODES
+
+# Place files according to expected structure
+```
 
 ## Stage 2: Database Loading
 
 ### Overview
-Database loading imports spatial data into PostgreSQL/PostGIS for analysis.
+Database loading imports downloaded and preprocessed spatial data into PostgreSQL/PostGIS for analysis.
 
 **Command:**
 ```bash
@@ -167,25 +166,7 @@ CREATE TABLE prodes (
 );
 ```
 
-### Spatial Indexing Strategy
-
-```sql
--- Primary spatial indexes for geometric operations
-CREATE INDEX idx_car_data_geometry ON car_data USING GIST (geometry);
-CREATE INDEX idx_prodes_geometry ON prodes USING GIST (geometry);
-
--- Temporal indexes for year-based queries
-CREATE INDEX idx_car_data_year ON car_data (year);
-CREATE INDEX idx_car_data_year_cod_imovel ON car_data (year, cod_imovel);
-
--- Text search indexes for property code searches
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-CREATE INDEX idx_car_data_cod_imovel_trgm ON car_data USING GIN (cod_imovel gin_trgm_ops);
-```
-
-### Loading Performance Optimization
-
-## Stage 3: Spatial Analysis
+## Stage 2: Spatial Analysis
 
 ### Overview
 Spatial analysis identifies changes in CAR boundaries and their relationship to deforestation.
@@ -203,112 +184,17 @@ make analyze YEARS=2023,2024,2025
 
 ### Analysis Workflow
 
-#### 1. Geometry Change Detection
+#### Geometry Change Detection
 
-**Purpose:** Identify CAR properties with boundary changes between years
-
-```sql
--- Identify properties with geometry changes
-WITH geometry_changes AS (
-    SELECT 
-        e.cod_imovel,
-        e.year as year_earlier,
-        l.year as year_later,
-        e.geometry as geometry_earlier,
-        l.geometry as geometry_later,
-        NOT ST_Equals(e.geometry, l.geometry) as geometry_changed,
-        ST_Area(e.geometry::geography) / 10000 as area_earlier_ha,
-        ST_Area(l.geometry::geography) / 10000 as area_later_ha
-    FROM car_data e
-    JOIN car_data l ON e.cod_imovel = l.cod_imovel
-    WHERE e.year = {{year_earlier}} AND l.year = {{year_later}}
-      AND e.ind_status = 'AT' AND l.ind_status = 'AT'  -- Active properties only
-)
-SELECT * FROM geometry_changes WHERE geometry_changed = true;
-```
-
-#### 2. PRODES Intersection Analysis
-
-**Purpose:** Find properties that intersect with deforestation areas
-
-```sql
--- Find CAR properties intersecting with PRODES
-WITH car_prodes_intersections AS (
-    SELECT DISTINCT
-        c.cod_imovel,
-        c.year,
-        c.geometry as car_geometry,
-        p.geometry as prodes_geometry,
-        ST_Area(ST_Intersection(c.geometry, p.geometry)::geography) / 10000 as intersection_area_ha
-    FROM car_data c
-    JOIN prodes_subdivided p ON ST_Intersects(c.geometry, p.geometry)
-    WHERE c.year IN ({{years}})
-      AND ST_Area(ST_Intersection(c.geometry, p.geometry)) > 0
-)
-SELECT * FROM car_prodes_intersections;
-```
-
-#### 3. Change Impact Analysis
-
-**Purpose:** Determine if geometry changes affect PRODES intersections
-
-```sql
--- Analyze impact of geometry changes on PRODES intersections
-SELECT 
-    gc.cod_imovel,
-    gc.geometry_changed,
-    CASE 
-        WHEN pe.cod_imovel IS NOT NULL AND pl.cod_imovel IS NOT NULL THEN 'both_intersect'
-        WHEN pe.cod_imovel IS NOT NULL AND pl.cod_imovel IS NULL THEN 'earlier_only'
-        WHEN pe.cod_imovel IS NULL AND pl.cod_imovel IS NOT NULL THEN 'later_only'
-        ELSE 'no_intersection'
-    END as intersection_pattern
-FROM geometry_changes gc
-LEFT JOIN prodes_intersections pe ON gc.cod_imovel = pe.cod_imovel AND pe.year = gc.year_earlier
-LEFT JOIN prodes_intersections pl ON gc.cod_imovel = pl.cod_imovel AND pl.year = gc.year_later;
-```
+Identifies properties where CAR boundaries have changed between years, particularly focusing on changes that may be related to excluding deforested areas.
 
 ### Analysis Results
 
 #### Output Tables
 
-1. **car_geom_changed**: Properties with geometry changes
-2. **car_prodes_intersections**: CAR-PRODES intersection analysis
-3. **car_changed_to_exclude_prodes**: Properties that changed to exclude deforestation
-4. **relevant_prodes_subdivided**: Optimized PRODES data for visualization
+1. **geometry_changes_{year}_view**: Properties that changed to exclude deforestation
+2. **relevant_prodes_subdivided**: Optimized PRODES data for visualization
 
-#### Materialized Views
-
-```sql
--- Create materialized view for visualization performance
-CREATE MATERIALIZED VIEW car_analysis_summary AS
-SELECT 
-    cod_imovel,
-    year_earlier,
-    year_later,
-    geometry_earlier,
-    geometry_later,
-    area_change_ha,
-    prodes_intersection_before,
-    prodes_intersection_after,
-    excludes_prodes
-FROM car_changed_to_exclude_prodes;
-
--- Create spatial index on materialized view
-CREATE INDEX idx_car_analysis_summary_geom_earlier 
-ON car_analysis_summary USING GIST (geometry_earlier);
-```
-
-### Performance Optimization
-
-#### Query Optimization
-```sql
--- Use spatial indexes effectively
--- Always use && operator before ST_Intersects for performance
-SELECT * FROM car_data c
-JOIN prodes p ON c.geometry && p.geometry  -- Bounding box check first
-WHERE ST_Intersects(c.geometry, p.geometry);  -- Exact intersection check
-```
 
 ## Stage 4: Data Preparation for Visualization
 
