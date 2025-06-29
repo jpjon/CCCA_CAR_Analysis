@@ -16,6 +16,18 @@ export default function YearToggleControls({
 
   return (
     <div id="year-controls">
+      <div className="legend-section">
+        <h3>Deforested Areas</h3>
+        <div className="legend-item">
+          <span
+            className="color-swatch"
+            style={{ backgroundColor: "#6E260E" }}
+            title="Deforested areas (PRODES data)"
+          />
+          <span className="legend-label">PRODES Data</span>
+        </div>
+      </div>
+      
       <h3>Year-over-Year Comparisons</h3>
       {CONFIG.years.map(year => (
         <label key={year} className="year-toggle">

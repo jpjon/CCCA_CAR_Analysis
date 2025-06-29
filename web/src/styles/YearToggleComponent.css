@@ -22,6 +22,28 @@
   color: #2c3e50;
 }
 
+.legend-section {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.legend-section h3 {
+  margin-bottom: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.legend-label {
+  margin-left: 10px;
+  font-size: 14px;
+  color: #2c3e50;
+}
+
 .year-toggle {
   display: flex;
   align-items: center;
