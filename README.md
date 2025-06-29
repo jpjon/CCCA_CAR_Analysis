@@ -2,7 +2,10 @@
 
 A modern geospatial analysis platform for tracking changes in Brazilian CAR (Cadastro Ambiental Rural) property boundaries over time and their relationship to PRODES deforestation data. Built with Docker microservices architecture for scalable spatial analysis and interactive visualization.
 
+
 ![System Architecture](docs/architecture-diagram.png)
+
+https://github.com/user-attachments/assets/6e7e05a8-c0aa-4909-8cf7-b5804a60a175
 
 ## 🚀 Quick Start
 
